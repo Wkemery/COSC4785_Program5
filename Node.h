@@ -10,6 +10,7 @@
 #include<vector>
 #include<string>
 #include<stack>
+// #include<unordered_map>
 using namespace std;
 #ifndef NODE_H
 #define NODE_H
@@ -90,21 +91,45 @@ using namespace std;
 #define PARAMLDONE 12001
 #define PARAMLIST 12002
 
+// class Type
+// {
+// private:
+//   string _lval;
+//   string _rval;
+//   vector<string> _parameters;
+// public:
+//   Type(string lval, string rval, vector<string>& parameters);
+// };
+// 
+// class SymTable
+// {
+// private:
+//   SymTable* _parent;
+//   unordered_map<string, SymTable*> _children;
+//   unordered_map<string, Type*> _entries;
+// public:
+//   SymTable(SymTable* parent);
+//   Type* lookup(string identifier);
+//   int insert(string identifier, Type type);
+// };
+
 class Node
 {
 protected:
+  Node(string value, string name, int kind);
   vector<Node*> _subNodes;
   const string _value;
-  const string _type;
+  const string _nodeName;
   const int _kind;
   bool _err;
-  Node(string value, string type, int kind);
+  string _type;
 public:
   virtual ~Node();
   virtual void print(ostream *out) = 0;
+  string getNodeName(void) const;
+  string getValue(void) const;
   void setErr();
   bool getErr();
-  string getType(void) const;
 };
 
 class ClassDec : public Node
@@ -226,12 +251,13 @@ public:
   void print(ostream* out);
 };
 
-class Type: public Node
+class TypeNode: public Node
 {
 public:
-  Type(string value, int kind);
-  Type(string value, Node* node1, int kind);
+  TypeNode(string value, int kind);
+  TypeNode(string value, Node* node1, int kind);
   void print(ostream* out);
+  string getType();
 };
 
 class Multibracks: public Node

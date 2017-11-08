@@ -18,8 +18,8 @@ output*/
 
 /******************************************************************************/
 
-Node::Node(string value = "", string type = "", int kind = 0)
-:_value(value), _type(type), _kind(kind), _err(false)
+Node::Node(string value = "", string name = "", int kind = 0)
+:_value(value), _nodeName(name), _kind(kind), _err(false)
 {}
 Node::~Node()
 {
@@ -32,10 +32,13 @@ void Node::setErr() {
   _err = true;
 }
 bool Node::getErr() {return _err;}
-string Node::getType(void) const
+
+string Node::getNodeName(void) const
 {
-  return _type;
+  return _nodeName;
 }
+
+string Node::getValue(void) const {return _value;}
 
 /******************************************************************************/
 
@@ -102,73 +105,73 @@ void ClassBody::print(ostream* out)
       case CLASSBODYVAR:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<VarDecs>";
-        else *out << "<" << _subNodes[0]->getType() << ">";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<VarDecs>";
+        else *out << "<" << _subNodes[0]->getNodeName() << ">";
         break;
       }
       case CLASSBODYVARCON:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode> ";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<VarDecs> ";
-        else *out << "<" << _subNodes[0]->getType() << "> ";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<VarDecs> ";
+        else *out << "<" << _subNodes[0]->getNodeName() << "> ";
         
         if(_subNodes[1]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[1]->getType()== "RNode") *out << "<ConstructorDecs>";
-        else *out << "<" << _subNodes[1]->getType() << ">";
+        else if(_subNodes[1]->getNodeName()== "RNode") *out << "<ConstructorDecs>";
+        else *out << "<" << _subNodes[1]->getNodeName() << ">";
         break;
       }
       case CLASSBODYVARCONMET:
       {
         
         if(_subNodes[0]->getErr()) *out << "<ErrNode> ";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<VarDecs> ";
-        else *out << "<" << _subNodes[0]->getType() << "> ";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<VarDecs> ";
+        else *out << "<" << _subNodes[0]->getNodeName() << "> ";
         
         if(_subNodes[1]->getErr()) *out << "<ErrNode> ";
-        else if(_subNodes[1]->getType()== "RNode") *out << "<ConstructorDecs> ";
-        else *out << "<" << _subNodes[1]->getType() << "> ";
+        else if(_subNodes[1]->getNodeName()== "RNode") *out << "<ConstructorDecs> ";
+        else *out << "<" << _subNodes[1]->getNodeName() << "> ";
         
         if(_subNodes[2]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[2]->getType()== "RNode") *out << "<MethodDecs>";
-        else *out << "<" << _subNodes[2]->getType() << ">";
+        else if(_subNodes[2]->getNodeName()== "RNode") *out << "<MethodDecs>";
+        else *out << "<" << _subNodes[2]->getNodeName() << ">";
         
         break;
       }
       case CLASSBODYCONMET:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode> ";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<ConstructorDecs> ";
-        else *out << "<" << _subNodes[0]->getType() << "> ";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<ConstructorDecs> ";
+        else *out << "<" << _subNodes[0]->getNodeName() << "> ";
         
         if(_subNodes[1]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[1]->getType()== "RNode") *out << "<MethodDecs>";
-        else *out << "<" << _subNodes[1]->getType() << ">";
+        else if(_subNodes[1]->getNodeName()== "RNode") *out << "<MethodDecs>";
+        else *out << "<" << _subNodes[1]->getNodeName() << ">";
         
         break;
       }
       case CLASSBODYMET:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<MethodDecs>";
-        else *out << "<" << _subNodes[0]->getType() << ">";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<MethodDecs>";
+        else *out << "<" << _subNodes[0]->getNodeName() << ">";
         break;
       }
       case CLASSBODYCON:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<ConstructorDecs>";
-        else *out << "<" << _subNodes[0]->getType() << ">";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<ConstructorDecs>";
+        else *out << "<" << _subNodes[0]->getNodeName() << ">";
         break;
       }
       case CLASSBODYVARMET:
       {
         if(_subNodes[0]->getErr()) *out << "<ErrNode> ";
-        else if(_subNodes[0]->getType()== "RNode") *out << "<VarDecs>";
-        else *out << "<" << _subNodes[0]->getType() << "> ";
+        else if(_subNodes[0]->getNodeName()== "RNode") *out << "<VarDecs>";
+        else *out << "<" << _subNodes[0]->getNodeName() << "> ";
         
         if(_subNodes[1]->getErr()) *out << "<ErrNode>";
-        else if(_subNodes[1]->getType()== "RNode") *out << "<MethodDecs>";
-        else *out << "<" << _subNodes[1]->getType() << ">";
+        else if(_subNodes[1]->getNodeName()== "RNode") *out << "<MethodDecs>";
+        else *out << "<" << _subNodes[1]->getNodeName() << ">";
         
         break;
       }
@@ -307,38 +310,38 @@ void ClassBody::print(ostream* out)
           case BLOCKVARDEC:
           {
             if(_subNodes[0]->getErr()) *out << "<ErrNode>";
-            else if(_subNodes[0]->getType()== "RNode") 
+            else if(_subNodes[0]->getNodeName()== "RNode") 
               *out << "<VarDecs>";
-            else *out << " <" << _subNodes[0]->getType() << ">";
+            else *out << " <" << _subNodes[0]->getNodeName() << ">";
             break;
           }
           case BLOCKSTMNT:
           {
             if(_subNodes[0]->getErr()) *out << "<ErrNode>";
-            else if(_subNodes[0]->getType()== "RNode") 
+            else if(_subNodes[0]->getNodeName()== "RNode") 
               *out << "<Statements>";
             else 
             {
-              *out << "<" <<  _subNodes[0]->getType() << ">";
+              *out << "<" <<  _subNodes[0]->getNodeName() << ">";
             }
             break;
           }
           case BLOCKVARSTMNT:
           {
             if(_subNodes[0]->getErr()) *out << "<ErrNode> ";
-            else if(_subNodes[0]->getType()== "RNode") 
+            else if(_subNodes[0]->getNodeName()== "RNode") 
               *out << "<VarDecs>";
             else 
             {
-              *out << "<" <<  _subNodes[0]->getType() << "> ";
+              *out << "<" <<  _subNodes[0]->getNodeName() << "> ";
             }
             
             if(_subNodes[1]->getErr()) *out << "<ErrNode>";
-            else if(_subNodes[1]->getType()== "RNode") 
+            else if(_subNodes[1]->getNodeName()== "RNode") 
               *out << "<Statements>";
             else 
             {
-              *out << "<" <<  _subNodes[1]->getType() << ">";
+              *out << "<" <<  _subNodes[1]->getNodeName() << ">";
             }
             
             break;
@@ -671,7 +674,7 @@ void ClassBody::print(ostream* out)
     {
       if(_err) return;
       
-      *out << "<Param> --> " << " <Type> " << (PDebug ? _value : "ID");
+      *out << "<Param> --> " << " <TypeNode> " << (PDebug ? _value : "ID");
       
       *out << endl;
       for(unsigned int i = 0; i < _subNodes.size(); i++)
@@ -817,7 +820,7 @@ void ClassBody::print(ostream* out)
       }
       
       if(_subNodes.size() > 0) 
-        *out << " <" << _subNodes[_subNodes.size() - 1]->getType() << ">" << endl;
+        *out << " <" << _subNodes[_subNodes.size() - 1]->getNodeName() << ">" << endl;
       
       for(unsigned int i = 0; i < _subNodes.size(); i++)
       {
@@ -876,12 +879,12 @@ void ClassBody::print(ostream* out)
         }
         case METHODDECTYPE:
         {
-          *out << "<Type> " << (PDebug ? _value : "ID") << " (<ParameterList>) ";
+          *out << "<TypeNode> " << (PDebug ? _value : "ID") << " (<ParameterList>) ";
           break;
         }
         case METHODDECTYPEEMPTY:
         {
-          *out << "<Type> " << (PDebug ? _value : "ID") << " () ";
+          *out << "<TypeNode> " << (PDebug ? _value : "ID") << " () ";
           break;
         }
         case METHODDECVOIDEMPTY:
@@ -896,7 +899,7 @@ void ClassBody::print(ostream* out)
         }
       }
       if(_subNodes.size() > 0) 
-        *out << "<" << _subNodes[_subNodes.size() - 1]->getType() << ">" << endl;
+        *out << "<" << _subNodes[_subNodes.size() - 1]->getNodeName() << ">" << endl;
       for(unsigned int i = 0; i < _subNodes.size(); i++)
       {
         _subNodes[i]->print(out);
@@ -917,7 +920,7 @@ void ClassBody::print(ostream* out)
     {
       if(_err) return;
       
-      *out << "<VarDec> --> <Type> " << (PDebug ? _value : "ID") << " ;" << endl;
+      *out << "<VarDec> --> <TypeNode> " << (PDebug ? _value : "ID") << " ;" << endl;
       for(unsigned int i = 0; i < _subNodes.size(); i++)
       {
         _subNodes[i]->print(out);
@@ -927,20 +930,20 @@ void ClassBody::print(ostream* out)
     
     /******************************************************************************/
     
-    Type::Type(string value, int kind):Node(value, "Type", kind)
+    TypeNode::TypeNode(string value, int kind):Node(value, "TypeNode", kind)
     {}
     
-    Type::Type(string value, Node* node1, int kind):Node(value, "Type", kind)
+    TypeNode::TypeNode(string value, Node* node1, int kind):Node(value, "TypeNode", kind)
     {
       _subNodes.push_back(node1);
       if(node1->getErr()) _err = true;
     }
     
-    void Type::print(ostream* out)
+    void TypeNode::print(ostream* out)
     {
       if(_err) return;
       
-      *out << "<Type> --> ";
+      *out << "<TypeNode> --> ";
       switch(_kind)
       {
         case TYPE:

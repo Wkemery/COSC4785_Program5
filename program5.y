@@ -707,19 +707,19 @@ sumop:  MINUS {$$ = new SumOp("-"); delete $1;}
 ;
 
 type: INT {
-            $$ = new Type("int", TYPE);
+            $$ = new TypeNode("int", TYPE);
             delete $1;
             }
       | IDENTIFIER {
-            $$ = new Type($1->value, TYPE);
+            $$ = new TypeNode($1->value, TYPE);
             delete $1;
             }
       | INT multibracks {
-            $$ = new Type("int", $2, TYPEBRACKS);
+            $$ = new TypeNode("int", $2, TYPEBRACKS);
             delete $1;
             }
       | IDENTIFIER multibracks {
-            $$ = new Type($1->value, $2, TYPEBRACKS);
+            $$ = new TypeNode($1->value, $2, TYPEBRACKS);
             delete $1;
             }
 ;
@@ -734,7 +734,7 @@ multibracks: LBRACK RBRACK {
                   $$ = $1;
                   delete $2; delete $3;
                   }              
-| LBRACK error {
+            | LBRACK error {
                     $$ = new ErrNode();
                     cerr << "Expected Right Bracket at " << yylval.token->line 
                     << ":" << yylval.token->column <<endl << endl;
