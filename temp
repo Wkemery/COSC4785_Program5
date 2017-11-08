@@ -1,0 +1,11 @@
+class myclass{
+  void method(){
+    name = 10;
+//     name = new;
+    z = x;
+    name = new int [2+2][2+5];
+    return;
+    
+  }
+
+}

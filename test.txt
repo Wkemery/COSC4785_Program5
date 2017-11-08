@@ -1,0 +1,68 @@
+class myclass1 {
+  //var dec in upper block testing
+ int z;
+ int[] z;
+ mytype[][][] myarray;
+ mytype myvar;
+ 
+ //constructor declaration testing
+id (int myparam, t[][][] myparam2, t2[] myparam3)
+{
+  while((- new a(2*2,+2,new t, 4, a < b)))
+  {
+    if (this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]] ( this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]], -new a(2/3,+2,new int), 4, a <= d, z))
+    {
+      print( this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]], -new a(2/3,+2,new int[]), 4, a <= d, z);
+      
+      this.type.id.id2[new int[2+2][5][][]] = this.type.id.id2[new int[2+2][5][][]];
+      
+      return (- new a(12*25,!90,new mytype[][][][], -18, y && x));
+      
+      return;
+      ;
+    }
+  }
+}
+
+
+cons2(){} cons3(){}
+
+void myfunc(int myparam, t[][][] myparam2, t2[] myparam3)
+{
+  while((- new a(2*2,+2,new t, 4, a < b)))
+  {
+    if (this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]] ( this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]], -new a(2/3,+2,new int), 4, a <= d, z))
+    {
+      print( this.type.id.id2[new int[((6+ -5)*2)/10][5][new t [2][]]], -new a(2/3,+2,new int[]), 4, a <= d, z);
+      
+      this.type.id.id2[new int[2+2][5][][]] = this.type.id.id2[new int[2+2][5][][]];
+      
+      return (- new a(12*25,!90,new mytype[][][][], -18, y && x));
+      
+      return;
+      ;
+    }
+  }
+}
+
+mytype myfunc2() {}
+
+
+}
+
+class myclass3{
+ cons2(){}
+cons3(){int myvar;}
+
+mytype myfunc2(){}
+mytype myfunc3(){mytype[] myvar;}
+}
+
+
+class myclass4{
+
+mytype myfunc2(){}
+mytype myfunc3(){mytype[] myvar;}
+}
+
+class myclass2{}

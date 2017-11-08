@@ -1,0 +1,536 @@
+
+
+<ClassDec> --> class ID <ClassBody>
+<ClassBody> --> {<VarDecs> <ConstructorDecs> <MethodDecs>}
+<VarDecs> --> 4 <VarDec>
+<VarDec> --> <Type> ID ;
+<Type> --> ID
+<VarDec> --> <Type> ID ;
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<VarDec> --> <Type> ID ;
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> [][][]
+<VarDec> --> <Type> ID ;
+<Type> --> ID
+<ConstructorDecs> --> 3 <ConstructorDec>
+<ConstructorDec> --> ID(<ParamList>) <Block>
+<ParamList> --> 3 <Param>
+<Param> -->  <Type> ID
+<Type> --> ID
+<Param> -->  <Type> ID
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> [][][]
+<Param> -->  <Type> ID
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<Block> --> {<Statements>}
+<Statements> --> 1 <Statement>
+<Statement> --> while (<Expression>) <Statement> 
+<Expression> --> (<Expression>)
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 5 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID 
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Block>
+<Block> --> {<Statements>}
+<Statements> --> 1 <Statement>
+<Statement> --> <ConditionalStatement>
+<ConditionalStatement> --> if (<Expression>) <Statement>
+<Expression> --> <Name>(<ArgList>)
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<ArgList> --> 5 <Expression>
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new int 
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <=
+<Expression> --> <Name>
+<Name> --> ID
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Block>
+<Block> --> {<Statements>}
+<Statements> --> 5 <Statement>
+<Statement> --> print (<ArgList>) ;
+<ArgList> --> 5 <Expression>
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <=
+<Expression> --> <Name>
+<Name> --> ID
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Name> = <Expression> ;
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 2 <Expression>
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> NUM
+<Expression> --> NUM
+<RecursiveBrackets> --> [][]
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 2 <Expression>
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> NUM
+<Expression> --> NUM
+<RecursiveBrackets> --> [][]
+<Statement> --> return <Expression> ;
+<Expression> --> (<Expression>)
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 5 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> !
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID <RecursiveBrackets>
+<RecursiveBrackets> --> [][][][]
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<ProductOp> --> &&
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> return ;
+<Statement> --> ;
+<ConstructorDec> --> ID() <Block>
+<Block> --> {}
+<ConstructorDec> --> ID() <Block>
+<Block> --> {}
+<MethodDecs> --> 2 <MethodDec>
+<MethodDec> --> void ID (<ParameterList>) <Block>
+<ParamList> --> 3 <Param>
+<Param> -->  <Type> ID
+<Type> --> ID
+<Param> -->  <Type> ID
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> [][][]
+<Param> -->  <Type> ID
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<Block> --> {<Statements>}
+<Statements> --> 1 <Statement>
+<Statement> --> while (<Expression>) <Statement> 
+<Expression> --> (<Expression>)
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 5 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID 
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Block>
+<Block> --> {<Statements>}
+<Statements> --> 1 <Statement>
+<Statement> --> <ConditionalStatement>
+<ConditionalStatement> --> if (<Expression>) <Statement>
+<Expression> --> <Name>(<ArgList>)
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<ArgList> --> 5 <Expression>
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new int 
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <=
+<Expression> --> <Name>
+<Name> --> ID
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Block>
+<Block> --> {<Statements>}
+<Statements> --> 5 <Statement>
+<Statement> --> print (<ArgList>) ;
+<ArgList> --> 5 <Expression>
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <[Expression]>
+<BracketedExpression> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> (<Expression>)
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 1 <Expression>
+<Expression> --> NUM
+<RecursiveBrackets> --> []
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 3 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> /
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> +
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new int <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<Expression> --> NUM
+<Expression> --> <Expression> <RelationOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<RelationOp> --> <=
+<Expression> --> <Name>
+<Name> --> ID
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> <Name> = <Expression> ;
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 2 <Expression>
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> NUM
+<Expression> --> NUM
+<RecursiveBrackets> --> [][]
+<Expression> --> <Name>
+<Name> --> <Name> [<Expression>]
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> <Name>.ID
+<Name> --> this
+<Expression> --> <NewExpression>
+<NewExpression> --> new int [<BracketedExpression>] <RecursiveBrackets>
+<BracketedExpression> --> 2 <Expression>
+<Expression> --> <Expression> <SumOp> <Expression>
+<Expression> --> NUM
+<SumOp> --> +
+<Expression> --> NUM
+<Expression> --> NUM
+<RecursiveBrackets> --> [][]
+<Statement> --> return <Expression> ;
+<Expression> --> (<Expression>)
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID (<ArgList>)
+<ArgList> --> 5 <Expression>
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> NUM
+<ProductOp> --> *
+<Expression> --> NUM
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> !
+<Expression> --> NUM
+<Expression> --> <NewExpression>
+<NewExpression> --> new ID <RecursiveBrackets>
+<RecursiveBrackets> --> [][][][]
+<Expression> --> <UnaryOp> <Expression>
+<UnaryOp> --> -
+<Expression> --> NUM
+<Expression> --> <Expression> <ProductOp> <Expression>
+<Expression> --> <Name>
+<Name> --> ID
+<ProductOp> --> &&
+<Expression> --> <Name>
+<Name> --> ID
+<Statement> --> return ;
+<Statement> --> ;
+<MethodDec> --> <Type> ID () <Block>
+<Type> --> ID
+<Block> --> {}
+<ClassDec> --> class ID <ClassBody>
+<ClassBody> --> {<ConstructorDecs> <MethodDecs>}
+<ConstructorDecs> --> 2 <ConstructorDec>
+<ConstructorDec> --> ID() <Block>
+<Block> --> {}
+<ConstructorDec> --> ID() <Block>
+<Block> --> {<VarDecs>}
+<VarDecs> --> 1 <VarDec>
+<VarDec> --> <Type> ID ;
+<Type> --> ID
+<MethodDecs> --> 2 <MethodDec>
+<MethodDec> --> <Type> ID () <Block>
+<Type> --> ID
+<Block> --> {}
+<MethodDec> --> <Type> ID () <Block>
+<Type> --> ID
+<Block> --> {<VarDecs>}
+<VarDecs> --> 1 <VarDec>
+<VarDec> --> <Type> ID ;
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<ClassDec> --> class ID <ClassBody>
+<ClassBody> --> {<MethodDecs>}
+<MethodDecs> --> 2 <MethodDec>
+<MethodDec> --> <Type> ID () <Block>
+<Type> --> ID
+<Block> --> {}
+<MethodDec> --> <Type> ID () <Block>
+<Type> --> ID
+<Block> --> {<VarDecs>}
+<VarDecs> --> 1 <VarDec>
+<VarDec> --> <Type> ID ;
+<Type> --> ID <RecursiveBrackets>
+<RecursiveBrackets> --> []
+<ClassDec> --> class ID <ClassBody>
+<ClassBody> --> {}

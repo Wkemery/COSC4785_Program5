@@ -1,0 +1,486 @@
+%{
+  /*
+   * program4.lpp
+   * Author: Wyatt Emery
+   * Date: OCT 20, 2017
+   *
+   * COSC 4785, Homework4
+   *
+   */
+  
+  /* A note: 
+   *  I used states for comments because I could not figure out how to do a 
+   *  regex that didnt match completed multiline comments as incomplete 
+   *  multiline comments. It added two extra states and a few extra rules, but
+   *  I don't think it's too messy
+   */
+  
+  /* I create a new Lexeme object everytime I match a production. These are all
+   * deleted in the bison ".y" file
+   */
+  
+  #include"Lexeme.h" 
+  #include"Node.h"
+  #include"program5_bison.h"
+  using namespace std;
+  Lexeme token;
+  int column = 1;
+  
+void yyerror(const char *string)
+{
+  cerr << string << " " ;
+  return;
+}
+%}
+%option outfile="program5_lex.cpp"
+%option noyywrap
+%option yylineno
+
+WHITESPACE ([\t \n])
+WORD (([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*)
+PUNCTUATION [.,;()\[\]{}]
+
+INVALIDCHARS [^!=<>+\-*\/;.,{}()% \t\n\[\]&]
+
+VALIDNONWORD [!=<>+\-*\/;.,{}()% \t\n\[\]&]|(&&)|(\|\|)
+
+INVALIDNONWORD [^!=<>+\-*\/;.,{}()% \t\n\[\]&\|]
+
+%x ERROR
+%x COMMENTS
+%x ENDCOMMENTS
+%x ERROR2
+%%
+
+"+" {
+  //Plus Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  
+  return PLUS; 
+}
+"-" {
+  //Minus Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+
+  
+  return MINUS; 
+}
+"!" {
+  //Not Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  
+  return NOT; 
+}
+
+"==" {
+  //== Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+=2;
+  return DOUBEQ; 
+}
+
+"!=" {
+  //!= Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+=2;
+  return NOTEQ; 
+}
+
+"<=" {
+  //<= Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+=2;
+  return LESSEQ; 
+}
+
+">=" {
+  //>= Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+=2;
+  return GREATEQ; 
+}
+
+"<" {
+  //< Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return LESS; 
+}
+
+">" {
+  //> Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return GREAT; 
+}
+
+"||" {
+  // || Operator
+  yylval.token = new Lexeme;
+  
+  setToken(yytext, yylineno, column);
+  column+=2;
+  return DOUBBAR; 
+}
+
+"*" {
+  // * Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return TIMES; 
+}
+
+"/" {
+  // / Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return DIVIDE; 
+}
+
+"%" {
+  // % Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return MOD; 
+}
+
+"&&" {
+  //&& Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+=2;
+  return DOUBAND; 
+}
+
+(=) {
+  //Assignment Operator
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return ASSIGNOP; 
+}
+
+"." {
+  //Dot  Operator
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return DOTOP; 
+}
+
+"," {
+  //comma
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return COMMA; 
+}
+
+(;) {
+  //Semi colon
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column++;
+  return SEMICO; 
+}
+
+"(" {
+  //Left Paren
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return LPAREN; 
+}
+
+")" {
+  yylval.token = new Lexeme;
+  
+  //Right Paren
+  setToken(NULL, yylineno, column);
+  column++;
+  return RPAREN; 
+}
+
+
+"\[" {
+  //Left Bracket
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return LBRACK; 
+}
+
+"\]" {
+  //Rigth bracket
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return RBRACK; 
+}
+
+"{" {
+  // Left Brace
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return LBRACE; 
+}
+
+"}" {
+  //Right Brace
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column++;
+  return RBRACE; 
+}
+
+(class) {
+  //class Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+=yyleng;
+  return CLASS; 
+}
+
+(this) {
+  //this Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return THIS; 
+}
+(if) {
+  //if Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return IF; 
+}
+(else) {
+  //else Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return ELSE; 
+}
+(while) {
+  //while Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return WHILE; 
+}
+(return) {
+  //return Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return RETURN; 
+}
+
+(print) {
+  //print Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return PRINT; 
+}
+
+(read) {
+  //read Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return READ; 
+}
+
+(void) {
+  //void Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return VOID; 
+}
+
+(new) {
+  //new Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return NEW; 
+}
+
+(null) {
+  //null Keyword
+  yylval.token = new Lexeme;
+  
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return NULLKEYWORD; 
+}
+
+(int) {
+  //int keyword
+  yylval.token = new Lexeme;
+  setToken(NULL, yylineno, column);
+  column+= yyleng;
+  return INT;
+}
+
+\/\/.*\n {
+  // single line comment
+  column = 1;
+}
+
+[0-9]+ {
+  //Number
+  yylval.token = new Lexeme;
+  setToken(yytext, yylineno, column);
+  column+= yyleng;
+  return NUM;
+}
+
+{WORD} {
+  //identifier
+  yylval.token = new Lexeme;
+  setToken(yytext, yylineno, column);
+  column+= yyleng;
+  return IDENTIFIER; 
+}
+
+[ ]+ {
+    
+    column+= yyleng;
+    
+}
+
+(\t)+ {
+    
+    column+= yyleng*8;
+}
+
+\n {
+  
+  column = 1;
+  
+}
+
+(\/\*) {
+  column+= yyleng;
+  BEGIN(COMMENTS);
+}
+
+. {
+  //found an error char, enter error state, ignore captured input
+  yyless(0);
+  BEGIN(ERROR); 
+}
+
+<ERROR>{INVALIDNONWORD}+ {
+  yymore();
+  BEGIN(ERROR2);
+}
+
+
+<ERROR>&|\| {
+  yymore();
+}
+
+<ERROR>.|\n {
+  yyless(strlen(yytext) - 1);
+  BEGIN(INITIAL);
+  cerr << "Lexical Error: " << yytext << " at " << yylineno << ":" << column 
+  << endl;  
+  column+= yyleng;
+
+}
+ 
+<ERROR2>(&&)|(\|\|) {
+  yyless(strlen(yytext) - 2);
+  BEGIN(INITIAL);
+  cerr << "Lexical Error: " << yytext << " at " << yylineno << ":" << column 
+  << endl; 
+  column+= yyleng;
+}
+
+<ERROR2>&|\| {
+  yymore();
+  BEGIN(ERROR);
+}
+
+
+<ERROR2>.|\n {
+  yyless(strlen(yytext) - 1);
+  BEGIN(INITIAL);
+  cerr << "Lexical Error: " << yytext << " at " << yylineno << ":" << column 
+  << endl; 
+  column+= yyleng;
+}
+
+
+<COMMENTS>([^\*\n])* {
+  column+= yyleng;
+  BEGIN(ENDCOMMENTS);
+}
+
+<COMMENTS>\* {
+  yyless(0);
+  BEGIN(ENDCOMMENTS);
+}
+
+<COMMENTS>\n {
+  column = 1;
+}
+
+<COMMENTS>(\/\*) {
+  column+= yyleng;
+}
+
+<ENDCOMMENTS>\n {
+  column = 1;
+  BEGIN(COMMENTS);
+}
+
+<ENDCOMMENTS>\*\/ {
+  column+= yyleng;
+  BEGIN(INITIAL);
+}
+
+<ENDCOMMENTS>\* {
+  column+= yyleng;
+  BEGIN(COMMENTS);
+}
+
+%%
+
