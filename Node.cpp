@@ -18,6 +18,45 @@ output*/
 
 /******************************************************************************/
 
+Type::Type(string lval, string rval, vector<string>& parameters)
+:_lval(lval), _rval(rval), _parameters(parameters)
+{}
+
+string Type::getlval(void) const{return _lval; }
+
+string Type::getrval(void) const {return _rval;}
+
+vector<string>* Type::getparams(void) { return &_parameters;}
+
+/******************************************************************************/
+
+SymTable::SymTable(SymTable* parent):_parent(parent)
+{}
+
+SymTable::~SymTable()
+{
+  for(auto it = _entries.begin(); it != _entries.end(); it++)
+  {
+    delete it->second;
+  }
+}
+
+Type* SymTable::lookup(string identifier)
+{
+  auto it = _entries.find(identifier);
+  return it->second;
+}
+
+int SymTable::insert(string identifier, Type* type)
+{
+  auto it = _entries.find(identifier);
+  if(it == _entries.end()) return -1;
+  _entries.insert(pair<string, Type*>(identifier, type));
+  return 0;
+}
+
+/******************************************************************************/
+
 Node::Node(string value = "", string name = "", int kind = 0)
 :_value(value), _nodeName(name), _kind(kind), _err(false)
 {}
@@ -40,6 +79,11 @@ string Node::getNodeName(void) const
 
 string Node::getValue(void) const {return _value;}
 
+Type* Node::getType() const {return 0;}
+
+Type* Node::getType(SymTable* table) const {return 0;}
+
+void Node::buildTable(SymTable* table) {return;}
 /******************************************************************************/
 
 ClassDec::ClassDec(string value, Node* node1):Node(value, "ClassDec")

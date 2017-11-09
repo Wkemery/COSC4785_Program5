@@ -10,7 +10,7 @@
 #include<vector>
 #include<string>
 #include<stack>
-// #include<unordered_map>
+#include<unordered_map>
 using namespace std;
 #ifndef NODE_H
 #define NODE_H
@@ -91,27 +91,30 @@ using namespace std;
 #define PARAMLDONE 12001
 #define PARAMLIST 12002
 
-// class Type
-// {
-// private:
-//   string _lval;
-//   string _rval;
-//   vector<string> _parameters;
-// public:
-//   Type(string lval, string rval, vector<string>& parameters);
-// };
-// 
-// class SymTable
-// {
-// private:
-//   SymTable* _parent;
-//   unordered_map<string, SymTable*> _children;
-//   unordered_map<string, Type*> _entries;
-// public:
-//   SymTable(SymTable* parent);
-//   Type* lookup(string identifier);
-//   int insert(string identifier, Type type);
-// };
+class Type
+{
+private:
+  string _lval;
+  string _rval;
+  vector<string> _parameters;
+public:
+  Type(string lval, string rval, vector<string>& parameters);
+  string getlval(void) const;
+  string getrval(void) const;
+  vector<string>* getparams(void);
+};
+
+class SymTable
+{
+private:
+  SymTable* _parent;
+  unordered_map<string, Type*> _entries;
+public:
+  SymTable(SymTable* parent);
+  ~SymTable();
+  Type* lookup(string identifier);
+  int insert(string identifier, Type* type);
+};
 
 class Node
 {
@@ -127,7 +130,10 @@ public:
   virtual ~Node();
   virtual void print(ostream *out) = 0;
   string getNodeName(void) const;
-  string getValue(void) const;
+  virtual string getValue(void) const;
+  virtual Type* getType() const;
+  virtual Type* getType(SymTable* table) const;
+  virtual void buildTable(SymTable* table);
   void setErr();
   bool getErr();
 };
@@ -153,6 +159,8 @@ public:
 
 class Statement : public Node
 {
+private:
+  SymTable* _myTable;
 public:
   Statement(int kind);
   Statement(Node* node1, Node* node2, int kind);

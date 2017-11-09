@@ -8,7 +8,7 @@
 ##############################
 
 CXX=g++
-CXXFLAGS=-ggdb -Wall
+CXXFLAGS=-ggdb -Wall -std=c++11
 FLEX=flex++
 FLEXFLAGS=--warn
 YACC=bison
