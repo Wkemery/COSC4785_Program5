@@ -91,6 +91,11 @@ ClassDec::ClassDec(string value, Node* node1):Node(value, "ClassDec")
   _subNodes.push_back(node1);
   if(node1->getErr()) _err = true;
 }
+
+void ClassDec::buildTable(SymTable* table)
+{
+  
+}
 void ClassDec::print(ostream* out)
 {
   if(_err) return;
