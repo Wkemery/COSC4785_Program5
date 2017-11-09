@@ -191,7 +191,7 @@ class RNode : public Node
 public:
   RNode(int kind);
   void add(Node* child);
-  Type* getType() const;
+  //Type* getType() const;
   void buildTable(SymTable* table);
   void print(ostream* out);
 };
