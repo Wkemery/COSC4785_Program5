@@ -217,6 +217,10 @@ statement: name ASSIGNOP expression SEMICO {
                   $$ = new Statement($1, $3, STMNTNAMEARGL);
                   delete $2; delete $4; delete $5;
                   }
+            | name LPAREN RPAREN SEMICO {
+                    $$ = new Statement($1,STMNTNAMEEMPTY);
+                    delete $2; delete $3, delete $4;
+                  }
             | PRINT LPAREN arglist RPAREN SEMICO {
                   $$ = new Statement($3, STMNTPRNTARGL);
                   delete $1; delete $2; delete $4; delete $5;

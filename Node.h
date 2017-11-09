@@ -51,6 +51,7 @@ using namespace std;
 #define STMNTBLOCK 4007
 #define STMNTVARDEC 4008
 #define STMNTSEMI 4010
+#define STMNTNAMEEMPTY 4011
 
 #define CONDSTMNT 5001
 #define CONDSTMNTELSE 5002
@@ -96,12 +97,14 @@ class Type
 private:
   string _lval;
   string _rval;
-  vector<string> _parameters;
+  vector<string>* _parameters;
+  string _classType;
 public:
-  Type(string lval, string rval, vector<string>& parameters);
+  Type(string lval, string rval, vector<string>* parameters, string classType);
   string getlval(void) const;
   string getrval(void) const;
-  vector<string>* getparams(void);
+  vector<string>* getParams(void);
+  string getClassType(void) const;
 };
 
 class SymTable
@@ -130,18 +133,21 @@ public:
   virtual ~Node();
   virtual void print(ostream *out) = 0;
   string getNodeName(void) const;
+  int getNodeKind(void) const;
   virtual string getValue(void) const;
   virtual Type* getType() const;
   virtual Type* getType(SymTable* table) const;
   virtual void buildTable(SymTable* table);
   void setErr();
   bool getErr();
+//   vector<Node*>* getChildren(void) const;
 };
 
 class ClassDec : public Node
 {
 public:
   ClassDec(string value, Node* node1);
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -152,6 +158,7 @@ public:
   ClassBody(Node* node1, int kind);
   ClassBody(Node* node1, Node* node2, int kind);
   ClassBody(Node* node1, Node* node2, Node* node3, int kind);  
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -165,6 +172,7 @@ public:
   Statement(int kind);
   Statement(Node* node1, Node* node2, int kind);
   Statement(Node* node1, int kind);
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -174,6 +182,7 @@ public:
   Block(int kind);
   Block(Node* node1, int kind);  
   Block(Node* node1, Node* node2, int kind); 
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -182,6 +191,8 @@ class RNode : public Node
 public:
   RNode(int kind);
   void add(Node* child);
+  Type* getType() const;
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -236,7 +247,7 @@ class ConstructorDec : public Node
 public:
   ConstructorDec(string value, Node* node1, Node* node2, int kind);
   ConstructorDec(string value, Node* node1, int kind);
-  
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -247,6 +258,7 @@ public:
   MethodDec(Node* node1, string value, Node* node2, int kind);
   MethodDec(string value, Node* node1, Node* node2, int kind);
   MethodDec(string value, Node* node1, int kind);
+  void buildTable(SymTable* table);
   void print(ostream* out);
 private:
   string _resultType;
@@ -256,6 +268,7 @@ class VarDec: public Node
 {
 public:
   VarDec(Node* node1, string value);
+  void buildTable(SymTable* table);
   void print(ostream* out);
 };
 
@@ -274,6 +287,7 @@ public:
   Multibracks();
   void add();
   void print(ostream* out);
+  string getType(void);
 private:
   int _count;
 };
