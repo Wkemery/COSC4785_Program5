@@ -32,7 +32,7 @@ string Type::getClassType(void) const {return _classType; }
 
 /******************************************************************************/
 
-SymTable::SymTable(SymTable* parent):_parent(parent)
+SymTable::SymTable(SymTable* parent, string value):_parent(parent), _value(value)
 {}
 
 SymTable::~SymTable()
@@ -41,6 +41,18 @@ SymTable::~SymTable()
   {
     delete it->second;
   }
+  for(auto it = _children.begin(); it!= _children.end(); it ++)
+  {
+    delete it->second;
+  }
+}
+
+int SymTable::addChild(SymTable* child)
+{
+  auto it = _children.find(child->getValue());
+  if(it == _children.end()) return -1;
+  _children.insert(pair<string, SymTable*>(child->getValue(), child));
+  return 0;
 }
 
 Type* SymTable::lookup(string identifier)
@@ -57,6 +69,9 @@ int SymTable::insert(string identifier, Type* type)
   _entries.insert(pair<string, Type*>(identifier, type));
   return 0;
 }
+
+string SymTable::getValue(void) const {return _value;}
+
 
 /******************************************************************************/
 
@@ -107,7 +122,8 @@ void ClassDec::buildTable(SymTable* table)
   table->insert(_value, mytype);
   
   //create a new symbol table - my symbol table 
-  SymTable* myTable = new SymTable(table);
+  SymTable* myTable = new SymTable(table, _value);
+  table->addChild(myTable);
   
   //call build table on your child - the classbody
   _subNodes[0]->buildTable(myTable);
@@ -157,7 +173,7 @@ ClassBody::ClassBody(Node* node1, Node* node2, Node* node3, int kind)
 
 void ClassBody::buildTable(SymTable* table) 
 {
-  // call build table on all children which are Rnodes
+  // call build table on all children, which are Rnodes
   for(unsigned int i = 0; i < _subNodes.size(); i++)
   {
     _subNodes[i]->buildTable(table);
@@ -467,6 +483,15 @@ void RNode::buildTable(SymTable* table)
   {
     _subNodes[i]->buildTable(table);
   }
+}
+Type* RNode::getType() const
+{
+  
+}
+
+vector<string>* RNode::getVals() const
+{
+  
 }
 
 void RNode::print(ostream* out)
@@ -892,16 +917,33 @@ ConstructorDec::ConstructorDec(string value, Node* node1, int kind)
 void ConstructorDec::buildTable(SymTable* table)
 {
   // get parameter types from param list child
-  Type* paramTypes = _subNodes[0]->getType();
+  Type* paramTypes;
+  if(_subNodes.size() > 0 ) paramTypes = _subNodes[0]->getType();
+  else paramTypes = new Type();
+  
+  vector<string>* paramNames = ((RNode*)_subNodes[0])->getVals();
+  
   //create mytype
-  Type* mytype = new Type("", _value, paramTypes->getParams());
-  delete paramTypes;
+  vector<string>* paramTypesVector = new vector<string>(*paramTypes->getParams());
+  Type* mytype = new Type("", _value, paramTypesVector);
+  
   // add myself to symbol table
   table->insert(_value, mytype);
+  
   //TODO: refer to table to see if constructor name matches class name
   //create my symbol table
-  SymTable* myTable = new SymTable(table);
+  SymTable* myTable = new SymTable(table, _value);
+  table->addChild(myTable);
   
+  //add my paramters to my table for the code in the block
+  for(unsigned int i = 0; i < paramNames->size(); i++)
+  {
+    Type* ptype = new Type((*paramNames)[i], (*paramTypesVector)[i]);
+    myTable->insert(*paramNames[i], ptype);
+  }
+  
+  delete paramTypes;
+  delete paramNames;
   //call buildTable on my child - the block
   _subNodes[0]->buildTable(myTable);
 }
@@ -982,17 +1024,33 @@ void MethodDec::buildTable(SymTable* table)
   Type* paramTypes;
   if(_subNodes.size() > 0 ) paramTypes = _subNodes[0]->getType();
   else paramTypes = new Type();
+  vector<string>* paramNames = ((RNode*)_subNodes[0])->getVals();
+  
   //create mytype
-  Type* mytype = new Type("", _value, paramTypes->getParams());
-  delete paramTypes;
+  vector<string>* paramTypesVector = new vector<string>(paramTypes->getParams());
+  Type* mytype = new Type("", _value, paramTypesVector);
+  
   // add myself to symbol table
   table->insert(_value, mytype);
   
   //create my symbol table
-  SymTable* myTable = new SymTable(table);
+  SymTable* myTable = new SymTable(table, _value);
+  table->addChild(myTable);
+  
+  
+  //add my paramters to my table for the code in the block
+  for(unsigned int i = 0; i < *paramNames.size(); i++)
+  {
+    Type* ptype = new Type(paramTypesVector[i], paramTypesVector[i]);
+    myTable->insert(*paramNames[i], ptype);
+  }
+  
+  delete paramTypes;
+  delete paramNames;
   
   //call buildTable on my child - the block
   _subNodes[0]->buildTable(myTable);
+  
 }
 
 void MethodDec::print(ostream* out)

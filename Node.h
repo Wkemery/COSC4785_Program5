@@ -111,12 +111,16 @@ class SymTable
 {
 private:
   SymTable* _parent;
+  string _value;
   unordered_map<string, Type*> _entries;
+  unordered_map<string, SymTable*> _children;
 public:
-  SymTable(SymTable* parent);
+  SymTable(SymTable* parent, string value);
   ~SymTable();
+  int addChild(SymTable*);
   Type* lookup(string identifier);
   int insert(string identifier, Type* type);
+  string getValue(void) const;
 };
 
 class Node
@@ -191,7 +195,8 @@ class RNode : public Node
 public:
   RNode(int kind);
   void add(Node* child);
-  //Type* getType() const;
+  Type* getType() const;
+  vector<string>* getVals() const;
   void buildTable(SymTable* table);
   void print(ostream* out);
 };
