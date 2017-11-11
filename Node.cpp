@@ -16,6 +16,11 @@ bool PDebug = false; //prints leaves on true
 bool EasyReading = false; /* on true, adds extra new lines for easy reading of 
 output*/
 
+
+string nameMangle(string funcName, vector<string>* funcParamTypes)
+{
+  return funcName;
+}
 /******************************************************************************/
 
 Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, string classType = "")
@@ -72,6 +77,20 @@ int SymTable::insert(string identifier, Type* type)
 
 string SymTable::getValue(void) const {return _value;}
 
+void SymTable::print()
+{
+  //print all the stuff in my _entries
+  for(auto it = _entries.begin(); it != _entries.end(); it++)
+  {
+    
+  }
+  
+  // call print on all my children
+  for(auto it = _children.begin(); it != _children.end(); it++)
+  {
+    
+  }
+}
 
 /******************************************************************************/
 
@@ -99,7 +118,7 @@ string Node::getNodeName(void) const
 
 string Node::getValue(void) const {return _value;}
 
-Type* Node::getType() const {return 0;}
+// Type* Node::getType() const {return 0;}
 
 Type* Node::getType(SymTable* table) const {return 0;}
 
@@ -484,14 +503,19 @@ void RNode::buildTable(SymTable* table)
     _subNodes[i]->buildTable(table);
   }
 }
-Type* RNode::getType() const
+
+vector<string>* RNode::getParamTypes() const
 {
-  
+  vector<string>* ret = 0;
+ 
+  return ret;
 }
 
-vector<string>* RNode::getVals() const
+vector<string>* RNode::getParamNames() const
 {
+  vector<string>* ret = 0;
   
+  return ret;
 }
 
 void RNode::print(ostream* out)
@@ -916,36 +940,7 @@ ConstructorDec::ConstructorDec(string value, Node* node1, int kind)
 
 void ConstructorDec::buildTable(SymTable* table)
 {
-  // get parameter types from param list child
-  Type* paramTypes;
-  if(_subNodes.size() > 0 ) paramTypes = _subNodes[0]->getType();
-  else paramTypes = new Type();
   
-  vector<string>* paramNames = ((RNode*)_subNodes[0])->getVals();
-  
-  //create mytype
-  vector<string>* paramTypesVector = new vector<string>(*paramTypes->getParams());
-  Type* mytype = new Type("", _value, paramTypesVector);
-  
-  // add myself to symbol table
-  table->insert(_value, mytype);
-  
-  //TODO: refer to table to see if constructor name matches class name
-  //create my symbol table
-  SymTable* myTable = new SymTable(table, _value);
-  table->addChild(myTable);
-  
-  //add my paramters to my table for the code in the block
-  for(unsigned int i = 0; i < paramNames->size(); i++)
-  {
-    Type* ptype = new Type((*paramNames)[i], (*paramTypesVector)[i]);
-    myTable->insert(*paramNames[i], ptype);
-  }
-  
-  delete paramTypes;
-  delete paramNames;
-  //call buildTable on my child - the block
-  _subNodes[0]->buildTable(myTable);
 }
 
 void ConstructorDec::print(ostream* out)
@@ -1021,35 +1016,73 @@ MethodDec::MethodDec(string value, Node* node1, int kind)
 void MethodDec::buildTable(SymTable* table)
 {
   // get parameter types from param list child
-  Type* paramTypes;
-  if(_subNodes.size() > 0 ) paramTypes = _subNodes[0]->getType();
-  else paramTypes = new Type();
-  vector<string>* paramNames = ((RNode*)_subNodes[0])->getVals();
-  
-  //create mytype
-  vector<string>* paramTypesVector = new vector<string>(paramTypes->getParams());
-  Type* mytype = new Type("", _value, paramTypesVector);
-  
-  // add myself to symbol table
-  table->insert(_value, mytype);
-  
-  //create my symbol table
-  SymTable* myTable = new SymTable(table, _value);
-  table->addChild(myTable);
-  
-  
-  //add my paramters to my table for the code in the block
-  for(unsigned int i = 0; i < *paramNames.size(); i++)
+  vector<string>* paramTypes = 0;
+  vector<string>* paramNames = 0;
+  string myRetType;
+
+  int paramChildi = -1;
+  int typeChildi = -1;
+  int blockChildi = -1;
+  switch(_kind)
   {
-    Type* ptype = new Type(paramTypesVector[i], paramTypesVector[i]);
-    myTable->insert(*paramNames[i], ptype);
+    case METHODDECVOID:
+    {
+      paramChildi = 0;
+      blockChildi = 1;
+      break;
+    }
+    case METHODDECTYPE:
+    {
+      typeChildi = 0;
+      paramChildi = 1;
+      blockChildi = 2;
+      break;
+    }
+    case METHODDECTYPEEMPTY:
+    {
+      typeChildi = 0;
+      blockChildi = 1;
+      break;
+    }
+    case METHODDECVOIDEMPTY:
+    {
+      blockChildi = 0;
+      break; 
+    }
   }
   
-  delete paramTypes;
-  delete paramNames;
+  if(paramChildi >= 0 )
+    paramTypes = ((RNode*)_subNodes[paramChildi])->getParamTypes();
+  if(paramChildi >= 0 )
+    paramNames = ((RNode*)_subNodes[paramChildi])->getParamNames();
+  
+  if(typeChildi >= 0)
+    myRetType = ((TypeNode*)_subNodes[0])->getType();
+  else myRetType = "void";
+  
+  
+  //create mytype
+  Type* myType = new Type("", myRetType, paramTypes);
+  table->insert(nameMangle(_value, paramTypes), myType);
+  
+  //create my symbol table
+  SymTable* myTable = new SymTable(table, nameMangle(_value, paramTypes));
+  table->addChild(myTable);
+  
+  //add my paramters to my table for the code in the block, if I have any
+  if(paramChildi >= 0)
+  {
+    for(unsigned int i = 0; i < paramTypes->size(); i++)
+    {
+      Type* paramType = new Type(paramTypes->at(i), paramTypes->at(i));
+      myTable->insert(paramNames->at(i), paramType);
+    }
+  }
   
   //call buildTable on my child - the block
-  _subNodes[0]->buildTable(myTable);
+  _subNodes[blockChildi]->buildTable(myTable);
+  
+  delete paramNames;
   
 }
 

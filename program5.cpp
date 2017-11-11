@@ -19,20 +19,30 @@ using namespace std;
 
 yyFlexLexer scanner;
 vector<Node*> forest;
-vector<string> lines;
 int main()
 {
   
-  lines.push_back("");
   yyparse();
   if(forest.size() > 0) cout << endl << endl;
-
+  SymTable* symbolTable = new SymTable(0, "Root");
   for(unsigned int i = 0; i < forest.size(); i++)
   {
-    if(forest[i] != 0) forest[i]->print(&cout);
-    delete forest[i];
+//     if(forest[i] != 0) forest[i]->print(&cout);
+    if(forest[i] != 0) forest[i]->buildTable(symbolTable);
   }
   
+  for(unsigned int i = 0; i < forest.size(); i++)
+  {
+    //do typecheck here. 
+    //     if(forest[i] != 0) forest[i]->typecheck();
+  }
+  
+  symbolTable->print();
+  
+  for(unsigned int i = 0; i < forest.size(); i++)
+  {
+    delete forest[i];
+  }
   
   return 0;
   

@@ -92,6 +92,8 @@ using namespace std;
 #define PARAMLDONE 12001
 #define PARAMLIST 12002
 
+// string nameMangle(string funcName, vector<string>* funcParamTypes);
+
 class Type
 {
 private:
@@ -121,6 +123,7 @@ public:
   Type* lookup(string identifier);
   int insert(string identifier, Type* type);
   string getValue(void) const;
+  void print();
 };
 
 class Node
@@ -139,7 +142,7 @@ public:
   string getNodeName(void) const;
   int getNodeKind(void) const;
   virtual string getValue(void) const;
-  virtual Type* getType() const;
+//   virtual Type* getType() const;
   virtual Type* getType(SymTable* table) const;
   virtual void buildTable(SymTable* table);
   void setErr();
@@ -195,8 +198,9 @@ class RNode : public Node
 public:
   RNode(int kind);
   void add(Node* child);
-  Type* getType() const;
-  vector<string>* getVals() const;
+//   Type* getType() const;
+  vector<string>* getParamTypes() const; //return the types of the paramlist
+  vector<string>* getParamNames() const; // return the identifiers of the paramlist
   void buildTable(SymTable* table);
   void print(ostream* out);
 };
