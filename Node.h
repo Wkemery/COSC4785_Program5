@@ -212,6 +212,7 @@ public:
   CondStatement(Node* node1, Node* node2, int kind);
   CondStatement(Node* node1, Node* node2, Node* node3, int kind);
   void print(ostream* out);
+  void buildTable(SymTable* table);
 };
 
 class Name : public Node

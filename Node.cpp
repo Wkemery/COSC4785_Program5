@@ -46,8 +46,16 @@ void Type::print(ostream* out)
     *out << "Class Type";
   else
   {
-    if(_lval == "") *out << _rval << " ";
-    else *out << _lval << " ";
+    if(_rval == "" && _lval == "")
+    {
+      *out << "Const ";
+    }
+    else
+    {
+      if(_lval == "") *out << _rval << " ";
+      else *out << _lval << " ";
+    }
+
     if(_parameters != 0 && _parameters->size() > 0) 
     {
       *out << "<- ";
@@ -115,11 +123,21 @@ void SymTable::print(ostream* out, int level)
     *out << spaces << nameUnMangle(it->first) << " ";
     it->second->print(out);
     *out << endl;
-    //check to see if entry is also a child and print it out
+
+    //check to see if entry is a child as well then print it out
     auto it2 = _children.find(nameUnMangle(it->first));
-    if(it2 != _children.end()) it2->second->print(out, level + 1);
+    if(it2 != _children.end())
+    {
+      it2->second->print(out, level + 1);
+      _children.erase(it2);
+    }    
   }
+  //print out all children of this scope
   
+  for(auto it2 = _children.begin(); it2!= _children.end(); it2++)
+  {
+    it2->second->print(out, level + 1);
+  }
 }
 
 /******************************************************************************/
@@ -351,6 +369,24 @@ Statement::Statement(int kind):Node("", "Statement", kind)
 
 void Statement::buildTable(SymTable* table)
 {
+  int childi = -1;
+  if(_kind == STMNTWHILE) childi = 1;
+  if(_kind == STMNTCOND) childi = 0;
+  if(_kind == STMNTBLOCK) 
+  {
+    childi = 0;
+    //create a new scope
+    int randname = rand();
+    string name = to_string(randname);
+    
+    SymTable* myTable = new SymTable(table, name);
+    table->addChild(myTable);
+    _subNodes[childi]->buildTable(myTable);
+  }
+  else
+  {
+    if(childi != -1) _subNodes[childi]->buildTable(table);
+  }
   
 }
 
@@ -429,7 +465,6 @@ void Statement::print(ostream* out)
   
 }
 /******************************************************************************/
-/* Will not discount an entire block due to error value of its children */
 Block::Block(int kind):Node("", "Block", kind)
 {}
 
@@ -635,6 +670,14 @@ CondStatement::CondStatement(Node* node1, Node* node2, Node* node3, int kind)
   _subNodes.push_back(node3);
   if(node3->getErr()) _err = true;
 }
+
+void CondStatement::buildTable(SymTable* table)
+{
+  for(unsigned int i = 1; i < _subNodes.size(); i++)
+  {
+    _subNodes[i]->buildTable(table);
+  }
+} 
 
 void CondStatement::print(ostream* out)
 {
@@ -985,7 +1028,57 @@ ConstructorDec::ConstructorDec(string value, Node* node1, int kind)
 
 void ConstructorDec::buildTable(SymTable* table)
 {
+  // get parameter types from param list child
+  vector<string>* paramTypes = 0;
+  vector<string>* paramNames = 0;
+  string myRetType;
   
+  int paramChildi = -1;
+  int blockChildi = -1;
+  
+  if(table->getValue() != _value)
+  {
+    cerr << "Constructor name not equal to class name" << endl;
+  }
+  
+  if(_kind == CONSTDEC)
+  {
+    paramChildi = 0;
+    blockChildi = 1;
+  }
+  if(_kind == CONSTDECEMPTY)
+  {
+    blockChildi = 0;
+  }
+  
+  if(paramChildi >= 0 )
+  {
+    paramTypes = ((RNode*)_subNodes[paramChildi])->getParamTypes();
+    paramNames = ((RNode*)_subNodes[paramChildi])->getParamNames();
+  }
+  
+  //create mytype
+  Type* myType = new Type("", "", paramTypes);
+  table->insert(nameMangle(_value, paramTypes), myType);
+  
+  //create my symbol table
+  SymTable* myTable = new SymTable(table, nameMangle(_value, paramTypes));
+  table->addChild(myTable);
+  
+  //add my paramters to my table for the code in the block, if I have any
+  if(paramChildi >= 0)
+  {
+    for(unsigned int i = 0; i < paramTypes->size(); i++)
+    {
+      Type* paramType = new Type(paramTypes->at(i), paramTypes->at(i));
+      myTable->insert(paramNames->at(i), paramType);
+    }
+  }
+  
+  //call buildTable on my child - the block
+  _subNodes[blockChildi]->buildTable(myTable);
+  
+  delete paramNames;
 }
 
 void ConstructorDec::print(ostream* out)
