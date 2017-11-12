@@ -21,6 +21,11 @@ string nameMangle(string funcName, vector<string>* funcParamTypes)
 {
   return funcName;
 }
+
+string nameUnMangle(string mangledName)
+{
+  return mangledName;
+}
 /******************************************************************************/
 
 Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, string classType = "")
@@ -34,6 +39,25 @@ string Type::getrval(void) const {return _rval;}
 vector<string>* Type::getParams(void) { return _parameters;}
 
 string Type::getClassType(void) const {return _classType; }
+
+void Type::print(ostream* out) 
+{ 
+  if(_classType != "")
+    *out << "Class Type";
+  else
+  {
+    if(_lval == "") *out << _rval << " ";
+    else *out << _lval << " ";
+    if(_parameters != 0 && _parameters->size() > 0) 
+    {
+      *out << "<- ";
+      for(unsigned int i = 0; i < _parameters->size(); i++)
+      {
+        *out << _parameters->at(i) << " ";
+      }
+    }
+  }
+}
 
 /******************************************************************************/
 
@@ -55,7 +79,7 @@ SymTable::~SymTable()
 int SymTable::addChild(SymTable* child)
 {
   auto it = _children.find(child->getValue());
-  if(it == _children.end()) return -1;
+  if(it != _children.end()) return -1;
   _children.insert(pair<string, SymTable*>(child->getValue(), child));
   return 0;
 }
@@ -63,33 +87,39 @@ int SymTable::addChild(SymTable* child)
 Type* SymTable::lookup(string identifier)
 {
   auto it = _entries.find(identifier);
-  if((it == _entries.end()) && (_parent != 0)) return _parent->lookup(identifier);
+  if((it != _entries.end()) && (_parent != 0)) return _parent->lookup(identifier);
   return it->second;
 }
 
 int SymTable::insert(string identifier, Type* type)
 {
   auto it = _entries.find(identifier);
-  if(it == _entries.end()) return -1;
+  if(it != _entries.end()) return -1;
   _entries.insert(pair<string, Type*>(identifier, type));
   return 0;
 }
 
 string SymTable::getValue(void) const {return _value;}
 
-void SymTable::print()
+void SymTable::print(ostream* out, int level)
 {
-  //print all the stuff in my _entries
+  
   for(auto it = _entries.begin(); it != _entries.end(); it++)
   {
-    
+    //print an entry. like foo class type
+    string spaces = "";
+    for(int i = 0; i < level; i++)
+    {
+      spaces.append(" ");
+    }
+    *out << spaces << nameUnMangle(it->first) << " ";
+    it->second->print(out);
+    *out << endl;
+    //check to see if entry is also a child and print it out
+    auto it2 = _children.find(nameUnMangle(it->first));
+    if(it2 != _children.end()) it2->second->print(out, level + 1);
   }
   
-  // call print on all my children
-  for(auto it = _children.begin(); it != _children.end(); it++)
-  {
-    
-  }
 }
 
 /******************************************************************************/
@@ -118,7 +148,7 @@ string Node::getNodeName(void) const
 
 string Node::getValue(void) const {return _value;}
 
-// Type* Node::getType() const {return 0;}
+// string Node::getType() const {return 0;}
 
 Type* Node::getType(SymTable* table) const {return 0;}
 
@@ -136,13 +166,14 @@ ClassDec::ClassDec(string value, Node* node1):Node(value, "ClassDec")
 
 void ClassDec::buildTable(SymTable* table)
 {
+  int ret;
   Type* mytype = new Type("", "", 0, _value);
   //add yourself to root table
   table->insert(_value, mytype);
   
   //create a new symbol table - my symbol table 
   SymTable* myTable = new SymTable(table, _value);
-  table->addChild(myTable);
+  ret = table->addChild(myTable);
   
   //call build table on your child - the classbody
   _subNodes[0]->buildTable(myTable);
@@ -506,15 +537,23 @@ void RNode::buildTable(SymTable* table)
 
 vector<string>* RNode::getParamTypes() const
 {
-  vector<string>* ret = 0;
- 
+  vector<string>* ret = new vector<string>;
+  for(unsigned int i = 0; i < _subNodes.size(); i++)
+  {
+    ret->push_back(((Param*)_subNodes[i])->getType());
+  }
+  
   return ret;
 }
 
 vector<string>* RNode::getParamNames() const
 {
-  vector<string>* ret = 0;
-  
+  vector<string>* ret = new vector<string>;
+  for(unsigned int i = 0; i < _subNodes.size(); i++)
+  {
+    ret->push_back(((Param*)_subNodes[i])->getParamName());
+    
+  }
   return ret;
 }
 
@@ -814,6 +853,12 @@ Param::Param(Node* node1, string value)
   if(node1->getErr()) _err = true;
 }
 
+string Param::getType() const
+{
+  return ((TypeNode*)_subNodes[0])->getType();
+}
+
+string Param::getParamName() const { return _value; }
 
 void Param::print(ostream* out)
 {
@@ -1052,9 +1097,10 @@ void MethodDec::buildTable(SymTable* table)
   }
   
   if(paramChildi >= 0 )
+  {
     paramTypes = ((RNode*)_subNodes[paramChildi])->getParamTypes();
-  if(paramChildi >= 0 )
     paramNames = ((RNode*)_subNodes[paramChildi])->getParamNames();
+  }
   
   if(typeChildi >= 0)
     myRetType = ((TypeNode*)_subNodes[0])->getType();
@@ -1139,12 +1185,14 @@ VarDec::VarDec(Node* node1, string value): Node(value, "VarDec")
 
 void VarDec::buildTable(SymTable* table)
 {
+  int ret;
   //get my type from my child typenode
   string type = ((TypeNode*)_subNodes[0])->getType();
   //create mytype
   Type* mytype = new Type(type, type);
   // add myself to symbol table
-  table->insert(_value, mytype);
+  ret = table->insert(_value, mytype);
+  if(ret != 0) cerr << "Var declared twice" << endl;
 }
 
 void VarDec::print(ostream* out)

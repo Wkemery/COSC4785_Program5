@@ -107,6 +107,7 @@ public:
   string getrval(void) const;
   vector<string>* getParams(void);
   string getClassType(void) const;
+  void print(ostream* out);
 };
 
 class SymTable
@@ -123,7 +124,7 @@ public:
   Type* lookup(string identifier);
   int insert(string identifier, Type* type);
   string getValue(void) const;
-  void print();
+  void print(ostream* out, int level);
 };
 
 class Node
@@ -237,6 +238,8 @@ class Param : public Node
 public:
   Param(Node* node1, string value);
   void print(ostream* out);
+  string getType() const;
+  string getParamName() const;
 };
 
 class NewExpression : public Node
