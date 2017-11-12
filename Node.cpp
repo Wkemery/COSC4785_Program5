@@ -172,6 +172,7 @@ Type* Node::getType(SymTable* table) const {return 0;}
 
 void Node::buildTable(SymTable* table) {return;}
 
+bool Node::typeCheck() {return true;}
 // vector<Node*>* getChildren(void) const;{return & _subNodes;}
 
 /******************************************************************************/
@@ -196,6 +197,12 @@ void ClassDec::buildTable(SymTable* table)
   //call build table on your child - the classbody
   _subNodes[0]->buildTable(myTable);
 }
+
+bool ClassDec::typeCheck()
+{
+  return _subNodes[0]->typeCheck();
+}
+
 void ClassDec::print(ostream* out)
 {
   if(_err) return;
@@ -237,6 +244,17 @@ ClassBody::ClassBody(Node* node1, Node* node2, Node* node3, int kind)
   _subNodes.push_back(node2);
   
   _subNodes.push_back(node3);
+}
+
+bool ClassBody::typeCheck()
+{
+  bool ret = true;
+  for(unsigned int i = 0; i < _subNodes.size(); i++)
+  {
+    bool temp = _subNodes[i]->typeCheck();
+    if(!temp) ret = false;
+  }
+  return ret;
 }
 
 void ClassBody::buildTable(SymTable* table) 
@@ -385,9 +403,67 @@ void Statement::buildTable(SymTable* table)
   }
   else
   {
+    _myTable = table;
     if(childi != -1) _subNodes[childi]->buildTable(table);
   }
   
+}
+
+bool Statement::typeCheck()
+{
+  switch(_kind)
+  {
+    case STMNTNAMEEXP:
+    {
+      //get type of name 
+      //get type of expression
+      //type check expression
+      //compare types
+      break;
+    }
+    case STMNTNAMEARGL:
+    {
+      //function call
+      //get type of function name from symbol table
+      //get the types of the arguments 
+      //compare function type with arguments passed
+      break;
+    }
+    case STMNTPRNTARGL:
+    {
+
+      break;
+    }
+    case STMNTWHILE:
+    {
+      //type check expression
+      //get type of expression
+      //type of exp must be int
+      //type check Statement
+      break;
+    }
+    case SMTNTRETURN:
+    {
+      // get the function name from SymTable _value
+      // but take into account the blocks with random names, maybe change 
+      // that to name of parent
+      // check function ret type matches type of the expression
+      //there can always be the return function
+      break;
+    }
+    case STMNTCOND:
+    {
+      //type check CondStatement
+      break;
+    }
+    case STMNTBLOCK:
+    {
+      //typecheck block
+      break;
+    }
+  }
+  
+  return true;
 }
 
 void Statement::print(ostream* out)

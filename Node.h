@@ -146,6 +146,7 @@ public:
 //   virtual Type* getType() const;
   virtual Type* getType(SymTable* table) const;
   virtual void buildTable(SymTable* table);
+  virtual bool typeCheck();
   void setErr();
   bool getErr();
 //   vector<Node*>* getChildren(void) const;
@@ -156,6 +157,7 @@ class ClassDec : public Node
 public:
   ClassDec(string value, Node* node1);
   void buildTable(SymTable* table);
+  bool typeCheck();
   void print(ostream* out);
 };
 
@@ -167,6 +169,7 @@ public:
   ClassBody(Node* node1, Node* node2, int kind);
   ClassBody(Node* node1, Node* node2, Node* node3, int kind);  
   void buildTable(SymTable* table);
+  bool typeCheck();
   void print(ostream* out);
 };
 
@@ -181,6 +184,7 @@ public:
   Statement(Node* node1, Node* node2, int kind);
   Statement(Node* node1, int kind);
   void buildTable(SymTable* table);
+  bool typeCheck();
   void print(ostream* out);
 };
 
