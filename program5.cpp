@@ -34,7 +34,9 @@ int main()
   for(unsigned int i = 0; i < forest.size(); i++)
   {
     //do typecheck here. 
-    //     if(forest[i] != 0) forest[i]->typecheck();
+    bool ret = true;
+    if(forest[i] != 0) ret = forest[i]->typeCheck(0);
+    if(!ret) cerr << "Error occured!" << endl;
   }
   
   symbolTable->print(&cout, 0);

@@ -19,12 +19,25 @@ output*/
 
 string nameMangle(string funcName, vector<string>* funcParamTypes)
 {
+  funcName.insert(0, to_string(funcName.size())); //prepend size of funcname
+  funcName.insert(0, "_Z"); //prepend _Z
+  for(unsigned int i = 0; i < funcParamTypes->size(); i++)
+  {
+    funcName.append(to_string(funcParamTypes->at(i).size()));
+    funcName.append(funcParamTypes->at(i));
+  }
   return funcName;
 }
 
 string nameUnMangle(string mangledName)
 {
-  return mangledName;
+  if(mangledName.substr(0, 2) != "_Z") return mangledName;
+  mangledName.erase(0, 2); //erase _Z
+  int pos = mangledName.find_first_not_of("01231456789");
+  //function name starts at pos
+  int funclength = stoi(mangledName.substr(0, pos));
+  
+  return mangledName.substr(pos, funclength);
 }
 /******************************************************************************/
 
@@ -95,8 +108,16 @@ int SymTable::addChild(SymTable* child)
 Type* SymTable::lookup(string identifier)
 {
   auto it = _entries.find(identifier);
-  if((it != _entries.end()) && (_parent != 0)) return _parent->lookup(identifier);
-  return it->second;
+  if((it == _entries.end()) && (_parent != 0)) return _parent->lookup(identifier);
+  if(it == _entries.end()) return 0;
+  else return it->second;
+}
+
+Type* SymTable::lookup(string className, string identifier)
+{
+  //lookup the id in the class symtable of className
+  //TODO: stub
+  return 0;
 }
 
 int SymTable::insert(string identifier, Type* type)
@@ -108,6 +129,28 @@ int SymTable::insert(string identifier, Type* type)
 }
 
 string SymTable::getValue(void) const {return _value;}
+
+Type* SymTable::getClassType() const
+{
+  //rely on the fact that you are at a class type when the next node is root.
+  
+  if(_parent->getValue() != "root")
+  {
+    return _parent->getClassType();
+  }
+  return _parent->lookup(_value);
+}
+
+string SymTable::findFunc() const
+{
+  
+  //rely on mangling, every func starts with _Z
+  if(_value.substr(0, 2) != "_Z")
+  {
+    return _parent->findFunc();
+  }
+  return _value;
+}
 
 void SymTable::print(ostream* out, int level)
 {
@@ -168,11 +211,11 @@ string Node::getValue(void) const {return _value;}
 
 // string Node::getType() const {return 0;}
 
-Type* Node::getType(SymTable* table) const {return 0;}
+Type* Node::getTypeCheck(SymTable* table) {return 0;}
 
 void Node::buildTable(SymTable* table) {return;}
 
-bool Node::typeCheck() {return true;}
+bool Node::typeCheck(SymTable* table) {return true;}
 // vector<Node*>* getChildren(void) const;{return & _subNodes;}
 
 /******************************************************************************/
@@ -188,19 +231,26 @@ void ClassDec::buildTable(SymTable* table)
   int ret;
   Type* mytype = new Type("", "", 0, _value);
   //add yourself to root table
-  table->insert(_value, mytype);
+  ret = table->insert(_value, mytype);
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   
   //create a new symbol table - my symbol table 
   SymTable* myTable = new SymTable(table, _value);
   ret = table->addChild(myTable);
-  
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   //call build table on your child - the classbody
   _subNodes[0]->buildTable(myTable);
 }
 
-bool ClassDec::typeCheck()
+bool ClassDec::typeCheck(SymTable* table)
 {
-  return _subNodes[0]->typeCheck();
+  return _subNodes[0]->typeCheck(table);
 }
 
 void ClassDec::print(ostream* out)
@@ -246,12 +296,12 @@ ClassBody::ClassBody(Node* node1, Node* node2, Node* node3, int kind)
   _subNodes.push_back(node3);
 }
 
-bool ClassBody::typeCheck()
+bool ClassBody::typeCheck(SymTable* table)
 {
   bool ret = true;
   for(unsigned int i = 0; i < _subNodes.size(); i++)
   {
-    bool temp = _subNodes[i]->typeCheck();
+    bool temp = _subNodes[i]->typeCheck(table);
     if(!temp) ret = false;
   }
   return ret;
@@ -395,6 +445,7 @@ void Statement::buildTable(SymTable* table)
     childi = 0;
     //create a new scope
     int randname = rand();
+    
     string name = to_string(randname);
     
     SymTable* myTable = new SymTable(table, name);
@@ -409,56 +460,127 @@ void Statement::buildTable(SymTable* table)
   
 }
 
-bool Statement::typeCheck()
+bool Statement::typeCheck(SymTable* table)
 {
+  bool ret = true;
   switch(_kind)
   {
     case STMNTNAMEEXP:
     {
-      //get type of name 
+      //get type/type check  name 
+      Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, "");
+      if(nameType == 0) return false;
+  
       //get type of expression
-      //type check expression
+      Type* expType = _subNodes[1]->getTypeCheck(_myTable);
+      if(expType == 0) return false;
+      
       //compare types
+      
+      if(nameType->getlval() == "")
+      {
+        //TODO: error
+        return false;
+      }
+      if(expType->getrval() == "") 
+      {
+        //TODO: error
+        return false;
+      }
+      
+      if(nameType->getlval() != expType->getrval())
+      {
+        //TODO: error
+        return false;
+      }
+      //TODO: possible memory leak when expType is just a int that was just a number
       break;
     }
     case STMNTNAMEARGL:
     {
       //function call
-      //get type of function name from symbol table
+      
       //get the types of the arguments 
+      Type* argsType = _subNodes[1]->getTypeCheck(_myTable);
+      if(argsType == 0) return false;
+      
+      //get type of function name from symbol table
+      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), argsType->getParams());
+      Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, mangledFuncName);
+      if(funcType == 0) return false;
+      
       //compare function type with arguments passed
+      if(argsType->getParams()->size() != funcType->getParams()->size())
+      {
+        //TODO error
+        return false;
+      }
+      
+      //compare each type one by one
+      for(unsigned int i = 0; i < funcType->getParams()->size(); i++)
+      {
+        if(funcType->getParams()->at(i) != argsType->getParams()->at(i))
+        {
+          //TODO error
+          return false;
+        }
+      }
       break;
     }
     case STMNTPRNTARGL:
     {
-
+      //TODO: figure out types for this???
       break;
     }
     case STMNTWHILE:
     {
-      //type check expression
-      //get type of expression
+      //type check expression/get type of expression
       //type of exp must be int
+      Type* expType = _subNodes[0]->getTypeCheck(_myTable);
+      if(expType == 0) return false;
+      if(expType->getrval() != "int")
+      {
+        //TODO: error
+        return false;
+      }
+      
       //type check Statement
+      _subNodes[1]->typeCheck(_myTable);
       break;
     }
     case SMTNTRETURN:
     {
       // get the function name from SymTable _value
-      // but take into account the blocks with random names, maybe change 
-      // that to name of parent
+      Type* funcType = table->lookup(table->findFunc());
+      // still give blocks random names, but rely on mangling, every func starts with _Z
+      
+      //get type of expression
+      Type* expType = _subNodes[0]->getTypeCheck(_myTable);
+      if(expType == 0) return false;
+      if(expType->getrval() != "int")
+      {
+        //TODO: error
+        return false;
+      }
+      
       // check function ret type matches type of the expression
-      //there can always be the return function
+      if(funcType->getrval() != expType->getrval())
+      {
+        //TODO: error
+        return false;
+      }
       break;
     }
     case STMNTCOND:
     {
       //type check CondStatement
+      _subNodes[0]->typeCheck(_myTable);
       break;
     }
     case STMNTBLOCK:
     {
       //typecheck block
+      _subNodes[0]->typeCheck(_myTable);
       break;
     }
   }
@@ -562,6 +684,18 @@ void Block::buildTable(SymTable* table)
     // call buildTable on children, only up to 2 Rnodes
     _subNodes[i]->buildTable(table);
   }
+}
+
+bool Block::typeCheck(SymTable* table)
+{
+  //call typeCheck on all mychildren
+  bool ret = true;
+  for(unsigned int i = 0; i < _subNodes.size(); i++)
+  {
+    bool temp = _subNodes[i]->typeCheck(table);
+    if(!temp) ret = false;
+  }
+  return ret;
 }
 
 void Block::print(ostream* out)
@@ -668,6 +802,18 @@ vector<string>* RNode::getParamNames() const
   return ret;
 }
 
+bool RNode::typeCheck(SymTable* table)
+{
+  //call typeCheck on all mychildren
+  bool ret = true;
+  for(unsigned int i = 0; i < _subNodes.size(); i++)
+  {
+    bool temp = _subNodes[i]->typeCheck(table);
+    if(!temp) ret = false;
+  }
+  return ret;
+}
+
 void RNode::print(ostream* out)
 {
   switch(_kind)
@@ -755,6 +901,11 @@ void CondStatement::buildTable(SymTable* table)
   }
 } 
 
+bool CondStatement::typeCheck(SymTable* table)
+{
+  return true;
+}
+
 void CondStatement::print(ostream* out)
 {
   if(_err) return;
@@ -803,6 +954,57 @@ Name::Name(Node* name, Node* expression, int kind):Node("", "Name", kind)
   _subNodes.push_back(expression);
   if(expression->getErr()) _err = true;
   
+}
+
+string Name::getFuncName()
+{
+  if(_kind == NAMEDOTID)
+    return _value;
+  
+  return "";
+}
+
+Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
+{
+  switch(_kind)
+  {  
+    case NAMETHIS:
+    {
+      return table->getClassType();
+    }
+    case NAMEID:
+    {
+      return table->lookup(_value);
+    }
+    case NAMEDOTID:
+    {
+      Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
+      
+      if(nameType->getClassType() == "")
+      {
+        //TODO error
+        return 0;
+      }
+      if(mangledName != "") 
+        return table->lookup(nameType->getClassType(), _value);
+      else
+        return table->lookup(nameType->getClassType(), mangledName);
+      break;
+    }
+    case NAMEEXP:
+    {
+      //TODO
+//       *out << "<Name> [<Expression>]";
+      break;
+    }
+    case NAMEIDEXP:
+    {//TODO
+//       *out << (PDebug ? _value : "ID") << " [<Expression>]";
+      break;
+    }
+  }
+  
+  return 0;
 }
 
 void Name::print(ostream* out)
@@ -887,6 +1089,70 @@ Expression::Expression(Node* expression1, Node* op, Node* expression2, int kind)
   if(expression2->getErr()) _err = true;
   
 }
+
+Type* Expression::getTypeCheck(SymTable* table)
+{
+  switch(_kind)
+  {
+    case EXPNUM:
+    {
+      return new Type("", "int");
+      break;
+    }
+    case EXPNULL:
+    {
+//       *out << _value;
+      break;
+    }
+    case EXPREAD:
+    {
+//       *out << _value;
+      break;
+    }
+    case EXPUNARY:
+    {
+//       *out << "<UnaryOp> <Expression>";
+      break;
+    }
+    case EXPRELATION:
+    {
+//       *out << "<Expression> <RelationOp> <Expression>";
+      break;
+    }
+    case EXPPRODUCT:
+    {
+//       *out << "<Expression> <ProductOp> <Expression>";
+      break;
+    }
+    case EXPSUMOP:
+    {
+//       *out << "<Expression> <SumOp> <Expression>";
+      break;
+    }
+    case EXPPAREN:
+    {
+//       *out << "(<Expression>)";
+      break;
+    }
+    case EXPNEW:
+    {
+//       *out << "<NewExpression>";
+      break;
+    }
+    case EXPNAME:
+    {
+//       *out << "<Name>";
+      break;
+    }
+    case EXPNAMEARG:
+    {
+//       *out << "<Name>(<ArgList>)";
+      break;
+    }
+  }
+  return 0;
+}
+
 void Expression::print(ostream* out)
 {
   if(_err) return;
@@ -1157,6 +1423,23 @@ void ConstructorDec::buildTable(SymTable* table)
   delete paramNames;
 }
 
+bool ConstructorDec::typeCheck(SymTable* table)
+{
+  int blockChildi = -1;
+  
+  if(_kind == CONSTDEC)
+  {
+    blockChildi = 1;
+  }
+  if(_kind == CONSTDECEMPTY)
+  {
+    blockChildi = 0;
+  }
+  
+  return _subNodes[blockChildi]->typeCheck(table);
+  
+}
+
 void ConstructorDec::print(ostream* out)
 {
   if(_err) return;
@@ -1299,6 +1582,36 @@ void MethodDec::buildTable(SymTable* table)
   
   delete paramNames;
   
+}
+
+bool MethodDec::typeCheck(SymTable* table)
+{
+  int blockChildi = -1;
+  switch(_kind)
+  {
+    case METHODDECVOID:
+    {
+      blockChildi = 1;
+      break;
+    }
+    case METHODDECTYPE:
+    {
+      blockChildi = 2;
+      break;
+    }
+    case METHODDECTYPEEMPTY:
+    {
+      blockChildi = 1;
+      break;
+    }
+    case METHODDECVOIDEMPTY:
+    {
+      blockChildi = 0;
+      break; 
+    }
+  }
+  
+  return _subNodes[blockChildi]->typeCheck(table);
 }
 
 void MethodDec::print(ostream* out)

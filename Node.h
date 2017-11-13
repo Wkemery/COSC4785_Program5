@@ -122,8 +122,11 @@ public:
   ~SymTable();
   int addChild(SymTable*);
   Type* lookup(string identifier);
+  Type* lookup(string className, string identifier);
   int insert(string identifier, Type* type);
   string getValue(void) const;
+  Type* getClassType() const;
+  string findFunc() const;
   void print(ostream* out, int level);
 };
 
@@ -144,9 +147,9 @@ public:
   int getNodeKind(void) const;
   virtual string getValue(void) const;
 //   virtual Type* getType() const;
-  virtual Type* getType(SymTable* table) const;
   virtual void buildTable(SymTable* table);
-  virtual bool typeCheck();
+  virtual Type* getTypeCheck(SymTable* table);
+  virtual bool typeCheck(SymTable* table);
   void setErr();
   bool getErr();
 //   vector<Node*>* getChildren(void) const;
@@ -157,7 +160,7 @@ class ClassDec : public Node
 public:
   ClassDec(string value, Node* node1);
   void buildTable(SymTable* table);
-  bool typeCheck();
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -169,7 +172,7 @@ public:
   ClassBody(Node* node1, Node* node2, int kind);
   ClassBody(Node* node1, Node* node2, Node* node3, int kind);  
   void buildTable(SymTable* table);
-  bool typeCheck();
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -184,7 +187,7 @@ public:
   Statement(Node* node1, Node* node2, int kind);
   Statement(Node* node1, int kind);
   void buildTable(SymTable* table);
-  bool typeCheck();
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -195,6 +198,7 @@ public:
   Block(Node* node1, int kind);  
   Block(Node* node1, Node* node2, int kind); 
   void buildTable(SymTable* table);
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -208,6 +212,7 @@ public:
   vector<string>* getParamNames() const; // return the identifiers of the paramlist
   void buildTable(SymTable* table);
   void print(ostream* out);
+  bool typeCheck(SymTable* table);
 };
 
 class CondStatement : public Node 
@@ -215,8 +220,9 @@ class CondStatement : public Node
 public:
   CondStatement(Node* node1, Node* node2, int kind);
   CondStatement(Node* node1, Node* node2, Node* node3, int kind);
-  void print(ostream* out);
   void buildTable(SymTable* table);
+  bool typeCheck(SymTable* table);
+  void print(ostream* out);
 };
 
 class Name : public Node
@@ -226,6 +232,8 @@ public:
   Name(Node* name, string value, int kind);
   Name(Node* name, Node* expression, int kind);
   void print(ostream* out);
+  Type* getTypeCheck(SymTable* table, string mangledName);
+  string getFuncName();
 };
 
 class Expression : public Node
@@ -235,6 +243,7 @@ public:
   Expression(string value, int kind);
   Expression(Node* unaryop, Node* expression, int kind);
   Expression(Node* expression1, Node* op, Node* expression2, int kind);
+  Type* getTypeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -265,6 +274,7 @@ public:
   ConstructorDec(string value, Node* node1, Node* node2, int kind);
   ConstructorDec(string value, Node* node1, int kind);
   void buildTable(SymTable* table);
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
@@ -276,6 +286,7 @@ public:
   MethodDec(string value, Node* node1, Node* node2, int kind);
   MethodDec(string value, Node* node1, int kind);
   void buildTable(SymTable* table);
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 private:
   string _resultType;

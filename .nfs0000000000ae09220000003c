@@ -20,7 +20,7 @@ class ClassA
 // //   int myfunc(int x, int y, int z){}
   MyType myfunc2(ClassA x, ClassB y, MyType z)
   {
-    int a;
+//     int a;
 //     int b;
     a = 4;
 //     if(a < 5)
