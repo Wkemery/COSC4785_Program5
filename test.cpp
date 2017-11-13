@@ -21,8 +21,12 @@ class ClassA
   MyType myfunc2(ClassA x, ClassB y, MyType z)
   {
     int a;
-//     int b;
-    a = 4;
+    int b;
+//     a = +(- b +2 -6 +a +b -5);
+//     a = b;
+//     a = myfuncint1();
+    a = myfuncint2(b, y);
+    
 //     if(a < 5)
 //     {
 //       int i;
@@ -45,6 +49,9 @@ class ClassA
 // //       y = new ClassB();
 //     }
   }
+  
+  int myfuncint1(){}
+  int myfuncint2(int x, ClassB z){}
 
 }
 

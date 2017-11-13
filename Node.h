@@ -28,6 +28,7 @@ using namespace std;
 #define EXPNEW 1009 /* Expression -> */
 #define EXPNAME 1010 /* Expression -> */
 #define EXPNAMEARG 1011 /* Expression -> */
+#define EXPNAMEEMPTY 1012
 
 #define NAMETHIS 2001 /* Name -> */
 #define NAMEID 2002 /* Name -> */
@@ -207,11 +208,11 @@ class RNode : public Node
 public:
   RNode(int kind);
   void add(Node* child);
-//   Type* getType() const;
   vector<string>* getParamTypes() const; //return the types of the paramlist
   vector<string>* getParamNames() const; // return the identifiers of the paramlist
   void buildTable(SymTable* table);
   void print(ostream* out);
+  Type* getTypeCheck(SymTable* table);
   bool typeCheck(SymTable* table);
 };
 
@@ -221,7 +222,7 @@ public:
   CondStatement(Node* node1, Node* node2, int kind);
   CondStatement(Node* node1, Node* node2, Node* node3, int kind);
   void buildTable(SymTable* table);
-  bool typeCheck(SymTable* table);
+  Type* getTypeCheck(SymTable*);  
   void print(ostream* out);
 };
 
@@ -265,6 +266,7 @@ public:
   NewExpression(Node* node1, Node* node2, int kind);
   NewExpression(string simpletype, Node* arglist, int kind);
   NewExpression(string simpletype, Node* type2 , Node* brackexp, int kind);
+  Type* getTypeCheck(SymTable*);
   void print(ostream* out);
 };
 

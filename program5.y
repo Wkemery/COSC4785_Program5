@@ -517,6 +517,10 @@ expression: NUM {
                   $$ = new Expression($1, $3, EXPNAMEARG);
                   delete $2; delete $4;
                   }
+            | name LPAREN RPAREN {
+                    $$ = new Expression($1, EXPNAMEEMPTY);
+                    delete $2; delete $3;
+                  }
             | name LPAREN error RPAREN {
                   $$ = new ErrNode();
                   cerr << "Expected ArgList before ')' at "

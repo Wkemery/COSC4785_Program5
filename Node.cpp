@@ -15,12 +15,14 @@ using namespace std;
 bool PDebug = false; //prints leaves on true
 bool EasyReading = false; /* on true, adds extra new lines for easy reading of 
 output*/
-
+Type numLiteralType("", "int", 0, "");
+Type nullType("", "NULL", 0, "");
 
 string nameMangle(string funcName, vector<string>* funcParamTypes)
 {
   funcName.insert(0, to_string(funcName.size())); //prepend size of funcname
   funcName.insert(0, "_Z"); //prepend _Z
+  if(funcParamTypes == 0) return funcName;
   for(unsigned int i = 0; i < funcParamTypes->size(); i++)
   {
     funcName.append(to_string(funcParamTypes->at(i).size()));
@@ -462,7 +464,6 @@ void Statement::buildTable(SymTable* table)
 
 bool Statement::typeCheck(SymTable* table)
 {
-  bool ret = true;
   switch(_kind)
   {
     case STMNTNAMEEXP:
@@ -525,6 +526,9 @@ bool Statement::typeCheck(SymTable* table)
           return false;
         }
       }
+      
+      delete argsType;
+      
       break;
     }
     case STMNTPRNTARGL:
@@ -581,6 +585,15 @@ bool Statement::typeCheck(SymTable* table)
     {
       //typecheck block
       _subNodes[0]->typeCheck(_myTable);
+      break;
+    }
+    case STMNTNAMEEMPTY:
+    {
+      //empty param list function call
+      //get type of function name from symbol table
+      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), 0);
+      Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, mangledFuncName);
+      if(funcType == 0) return false;
       break;
     }
   }
@@ -644,6 +657,11 @@ void Statement::print(ostream* out)
     case STMNTSEMI:
     {
       *out << ";";
+      break;
+    }
+    case STMNTNAMEEMPTY:
+    {
+      *out << "<Name>()";
       break;
     }
     default:
@@ -802,6 +820,28 @@ vector<string>* RNode::getParamNames() const
   return ret;
 }
 
+Type* RNode::getTypeCheck(SymTable* table)
+{
+
+    if(_kind == RECARG)
+    {
+      //get all arg types
+      vector<string>* argTypes = new vector<string>();
+      for(unsigned int i = 0; i < _subNodes.size(); i++)
+      {
+        argTypes->push_back(_subNodes[i]->getTypeCheck(table)->getrval());
+      }
+      return new Type("","",argTypes);
+    }
+    if(_kind == RECBRACKEXP)
+    {
+//       *out << "<BracketedExpression> --> " << _subNodes.size() << " <Expression>" 
+//       << endl;
+    }
+    return 0;
+  }
+
+
 bool RNode::typeCheck(SymTable* table)
 {
   //call typeCheck on all mychildren
@@ -809,7 +849,7 @@ bool RNode::typeCheck(SymTable* table)
   for(unsigned int i = 0; i < _subNodes.size(); i++)
   {
     bool temp = _subNodes[i]->typeCheck(table);
-    if(!temp) ret = false;
+    if(!temp) ret = 0;
   }
   return ret;
 }
@@ -901,9 +941,10 @@ void CondStatement::buildTable(SymTable* table)
   }
 } 
 
-bool CondStatement::typeCheck(SymTable* table)
+Type* CondStatement::getTypeCheck(SymTable* table)
 {
-  return true;
+  //TODO: stub
+  return 0;
 }
 
 void CondStatement::print(ostream* out)
@@ -958,9 +999,8 @@ Name::Name(Node* name, Node* expression, int kind):Node("", "Name", kind)
 
 string Name::getFuncName()
 {
-  if(_kind == NAMEDOTID)
+  if(_kind == NAMEDOTID || _kind == NAMEID)
     return _value;
-  
   return "";
 }
 
@@ -974,7 +1014,10 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     }
     case NAMEID:
     {
-      return table->lookup(_value);
+      if(mangledName == "") 
+        return table->lookup(_value);
+      else
+        return table->lookup(mangledName);
     }
     case NAMEDOTID:
     {
@@ -985,7 +1028,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
         //TODO error
         return 0;
       }
-      if(mangledName != "") 
+      if(mangledName == "") 
         return table->lookup(nameType->getClassType(), _value);
       else
         return table->lookup(nameType->getClassType(), mangledName);
@@ -1096,58 +1139,108 @@ Type* Expression::getTypeCheck(SymTable* table)
   {
     case EXPNUM:
     {
-      return new Type("", "int");
-      break;
+      return &numLiteralType;
     }
     case EXPNULL:
     {
-//       *out << _value;
-      break;
+      return &nullType;
     }
     case EXPREAD:
     {
-//       *out << _value;
-      break;
+      //TODO: ask about type of read()
     }
     case EXPUNARY:
     {
-//       *out << "<UnaryOp> <Expression>";
-      break;
+      Type* expType = _subNodes[1]->getTypeCheck(table);
+      if(expType == 0) return 0;
+      
+      if(expType->getrval() != "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      return &numLiteralType;
     }
     case EXPRELATION:
-    {
-//       *out << "<Expression> <RelationOp> <Expression>";
-      break;
-    }
     case EXPPRODUCT:
-    {
-//       *out << "<Expression> <ProductOp> <Expression>";
-      break;
-    }
     case EXPSUMOP:
     {
-//       *out << "<Expression> <SumOp> <Expression>";
-      break;
+      Type* expType1 = _subNodes[0]->getTypeCheck(table);
+      if(expType1 == 0) return 0;
+      
+      if(expType1->getrval() != "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      Type* expType2 = _subNodes[2]->getTypeCheck(table);
+      
+      if(expType2 == 0) return 0;
+      
+      if(expType2->getrval() != "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      return &numLiteralType;
     }
     case EXPPAREN:
     {
-//       *out << "(<Expression>)";
-      break;
+      return _subNodes[0]->getTypeCheck(table);
     }
     case EXPNEW:
     {
-//       *out << "<NewExpression>";
-      break;
+      return _subNodes[0]->getTypeCheck(table);
     }
     case EXPNAME:
     {
-//       *out << "<Name>";
-      break;
+      return ((Name*)_subNodes[0])->getTypeCheck(table, "");
     }
     case EXPNAMEARG:
     {
-//       *out << "<Name>(<ArgList>)";
-      break;
+      //function call
+      
+      //get the types of the arguments 
+      Type* argsType = _subNodes[1]->getTypeCheck(table);
+      if(argsType == 0) return 0;
+      
+      //get type of function name from symbol table
+      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), argsType->getParams());
+      Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(table, mangledFuncName);
+      if(funcType == 0) return 0;
+      
+      //compare function type with arguments passed
+      if(argsType->getParams()->size() != funcType->getParams()->size())
+      {
+        //TODO error
+        return 0;
+      }
+      
+      //compare each type one by one
+      for(unsigned int i = 0; i < funcType->getParams()->size(); i++)
+      {
+        if(funcType->getParams()->at(i) != argsType->getParams()->at(i))
+        {
+          //TODO error
+          return 0;
+        }
+      }
+      
+      delete argsType;
+      
+      return funcType;
+    }
+    case EXPNAMEEMPTY:
+    {
+      //empty param list function call
+      //get type of function name from symbol table
+      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), 0);
+      Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(table, mangledFuncName);
+      if(funcType == 0) return 0;
+      
+      return funcType;
     }
   }
   return 0;
@@ -1213,6 +1306,11 @@ void Expression::print(ostream* out)
     case EXPNAMEARG:
     {
       *out << "<Name>(<ArgList>)";
+      break;
+    }
+    case EXPNAMEEMPTY:
+    {
+      *out << "<Name>()";
       break;
     }
     default:
@@ -1296,6 +1394,12 @@ NewExpression::NewExpression(string simpletype, Node* type2, Node* brackexp, int
   
   _subNodes.push_back(brackexp);
   if(brackexp->getErr()) _err = true;
+}
+
+Type* NewExpression::getTypeCheck(SymTable* table)
+{
+  //TODO: stub
+  return 0;
 }
 
 void NewExpression::print(ostream* out)
