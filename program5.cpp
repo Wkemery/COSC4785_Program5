@@ -35,7 +35,7 @@ int main()
   {
     //do typecheck here. 
     bool ret = true;
-    if(forest[i] != 0) ret = forest[i]->typeCheck(0);
+    if(forest[i] != 0) ret = forest[i]->typeCheck(symbolTable);
     if(!ret) cerr << "Error occured!" << endl;
   }
   

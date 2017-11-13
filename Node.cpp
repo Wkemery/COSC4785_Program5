@@ -107,7 +107,7 @@ int SymTable::addChild(SymTable* child)
   return 0;
 }
 
-Type* SymTable::lookup(string identifier)
+Type* SymTable::lookup(string identifier) const
 {
   auto it = _entries.find(identifier);
   if((it == _entries.end()) && (_parent != 0)) return _parent->lookup(identifier);
@@ -118,8 +118,65 @@ Type* SymTable::lookup(string identifier)
 Type* SymTable::lookup(string className, string identifier)
 {
   //lookup the id in the class symtable of className
-  //TODO: stub
-  return 0;
+  
+  if(!this->classLookup(className))
+  {
+    //TODO: error
+    return 0;
+  }
+  
+  //the class does exist
+  const SymTable* rootTable = this->getRoot();
+  const SymTable* classTable = rootTable->lookupChild(className);
+  if(classTable == 0)
+  {
+    //TODO: error
+    return 0;
+  }
+  
+  Type* idType = classTable->lookup(identifier);
+  if(idType->getClassType() != "")
+  {
+    //TODO: error
+    return 0;
+  }
+  
+  return idType;
+  
+}
+
+const SymTable* SymTable::getRoot() const
+{
+  if(_parent == 0)
+    return this;
+  else return _parent->getRoot();
+}
+
+SymTable* SymTable::lookupChild(string className) const
+{
+  auto it = _children.find(className);
+  if(it == _children.end())
+  {
+    //TODO: error
+    return 0;
+  }
+  return it->second;
+}
+
+
+bool SymTable::classLookup(string identifier) const
+{
+  
+  if(_parent == 0)
+  {
+    if(this->lookup(identifier) != 0) return true;
+  }
+  else
+  {
+    return _parent->classLookup(identifier);
+  }
+  
+  return false;
 }
 
 int SymTable::insert(string identifier, Type* type)
@@ -135,12 +192,14 @@ string SymTable::getValue(void) const {return _value;}
 Type* SymTable::getClassType() const
 {
   //rely on the fact that you are at a class type when the next node is root.
-  
-  if(_parent->getValue() != "root")
+  if(_parent == 0)
+  {
+    return this->lookup(_value);
+  }
+  else
   {
     return _parent->getClassType();
   }
-  return _parent->lookup(_value);
 }
 
 string SymTable::findFunc() const
@@ -163,21 +222,21 @@ void SymTable::print(ostream* out, int level)
     string spaces = "";
     for(int i = 0; i < level; i++)
     {
-      spaces.append(" ");
+      spaces.append("  ");
     }
     *out << spaces << nameUnMangle(it->first) << " ";
     it->second->print(out);
     *out << endl;
 
     //check to see if entry is a child as well then print it out
-    auto it2 = _children.find(nameUnMangle(it->first));
+    auto it2 = _children.find(it->first);
     if(it2 != _children.end())
     {
       it2->second->print(out, level + 1);
       _children.erase(it2);
     }    
   }
-  //print out all children of this scope
+  //print the rest of the children of this scope
   
   for(auto it2 = _children.begin(); it2!= _children.end(); it2++)
   {
@@ -211,14 +270,11 @@ string Node::getNodeName(void) const
 
 string Node::getValue(void) const {return _value;}
 
-// string Node::getType() const {return 0;}
-
 Type* Node::getTypeCheck(SymTable* table) {return 0;}
 
 void Node::buildTable(SymTable* table) {return;}
 
 bool Node::typeCheck(SymTable* table) {return true;}
-// vector<Node*>* getChildren(void) const;{return & _subNodes;}
 
 /******************************************************************************/
 
@@ -1022,16 +1078,17 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     case NAMEDOTID:
     {
       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
+      if(nameType == 0) return 0;
       
-      if(nameType->getClassType() == "")
+      if(nameType->getlval() == "")
       {
         //TODO error
         return 0;
       }
       if(mangledName == "") 
-        return table->lookup(nameType->getClassType(), _value);
+        return table->lookup(nameType->getlval(), _value);
       else
-        return table->lookup(nameType->getClassType(), mangledName);
+        return table->lookup(nameType->getlval(), mangledName);
       break;
     }
     case NAMEEXP:
@@ -1147,20 +1204,14 @@ Type* Expression::getTypeCheck(SymTable* table)
     }
     case EXPREAD:
     {
-      //TODO: ask about type of read()
+      return &numLiteralType;
     }
     case EXPUNARY:
     {
       Type* expType = _subNodes[1]->getTypeCheck(table);
       if(expType == 0) return 0;
       
-      if(expType->getrval() != "int")
-      {
-        //TODO: error
-        return 0;
-      }
-      
-      return &numLiteralType;
+      return expType;
     }
     case EXPRELATION:
     case EXPPRODUCT:
@@ -1169,22 +1220,17 @@ Type* Expression::getTypeCheck(SymTable* table)
       Type* expType1 = _subNodes[0]->getTypeCheck(table);
       if(expType1 == 0) return 0;
       
-      if(expType1->getrval() != "int")
-      {
-        //TODO: error
-        return 0;
-      }
-      
       Type* expType2 = _subNodes[2]->getTypeCheck(table);
       
       if(expType2 == 0) return 0;
       
-      if(expType2->getrval() != "int")
+      if(expType1->getrval() != expType2->getrval())
       {
         //TODO: error
         return 0;
       }
-      return &numLiteralType;
+      
+      return expType1;
     }
     case EXPPAREN:
     {
@@ -1530,14 +1576,43 @@ void ConstructorDec::buildTable(SymTable* table)
 bool ConstructorDec::typeCheck(SymTable* table)
 {
   int blockChildi = -1;
+  int paramChildi = -1;
   
   if(_kind == CONSTDEC)
   {
     blockChildi = 1;
+    paramChildi = 0;
   }
   if(_kind == CONSTDECEMPTY)
   {
     blockChildi = 0;
+  }
+  
+  
+  if(paramChildi != -1)
+  {
+    //validate paramter types
+    vector<string>* paramTypes = ((RNode*)_subNodes[paramChildi])->getParamTypes();
+    for(unsigned int i = 0; i < paramTypes->size(); i++)
+    {
+      string type = paramTypes->at(i);
+      
+      //remove any []
+      unsigned int arrayPos = type.find_first_of("[");
+      if(arrayPos != string::npos)
+        type = type.substr(0,arrayPos);
+      
+      if(type != "int")
+      {
+        if(!table->classLookup(type))
+        {
+          //TODO: error
+          return false;
+        }
+      }
+    }
+    
+    delete paramTypes;
   }
   
   return _subNodes[blockChildi]->typeCheck(table);
@@ -1690,21 +1765,27 @@ void MethodDec::buildTable(SymTable* table)
 
 bool MethodDec::typeCheck(SymTable* table)
 {
+  int typeChildi = -1;
+  int paramChildi = -1;
   int blockChildi = -1;
   switch(_kind)
   {
     case METHODDECVOID:
     {
+      paramChildi = 0;
       blockChildi = 1;
       break;
     }
     case METHODDECTYPE:
     {
+      typeChildi = 0;
+      paramChildi = 1;
       blockChildi = 2;
       break;
     }
     case METHODDECTYPEEMPTY:
     {
+      typeChildi = 0;
       blockChildi = 1;
       break;
     }
@@ -1713,6 +1794,53 @@ bool MethodDec::typeCheck(SymTable* table)
       blockChildi = 0;
       break; 
     }
+  }
+  
+  if(typeChildi!= -1)
+  {
+    // need to validate type
+    //get my type from my child typenode
+    string type = ((TypeNode*)_subNodes[typeChildi])->getType();
+    
+    //remove any []
+    unsigned int arrayPos = type.find_first_of("[");
+    if(arrayPos != string::npos)
+      type = type.substr(0, arrayPos);
+    
+    if(type != "int")
+    {
+      if(!table->classLookup(type))
+      {
+        //TODO: error
+        return false;
+      }
+    }
+  }
+  
+  if(paramChildi != -1)
+  {
+    //validate paramter types
+    vector<string>* paramTypes = ((RNode*)_subNodes[paramChildi])->getParamTypes();
+    for(unsigned int i = 0; i < paramTypes->size(); i++)
+    {
+      string type = paramTypes->at(i);
+      
+      //remove any []
+      unsigned int arrayPos = type.find_first_of("[");
+      if(arrayPos != string::npos)
+        type = type.substr(0, arrayPos);
+      
+      if(type != "int")
+      {
+        if(!table->classLookup(type))
+        {
+          //TODO: error
+          return false;
+        }
+      }
+    }
+    
+    delete paramTypes;
   }
   
   return _subNodes[blockChildi]->typeCheck(table);
@@ -1779,6 +1907,28 @@ void VarDec::buildTable(SymTable* table)
   // add myself to symbol table
   ret = table->insert(_value, mytype);
   if(ret != 0) cerr << "Var declared twice" << endl;
+}
+
+bool VarDec::typeCheck(SymTable* table)
+{
+  // need to validate type
+  //get my type from my child typenode
+  string type = ((TypeNode*)_subNodes[0])->getType();
+  
+  //remove any []
+  unsigned int arrayPos = type.find_first_of("[");
+  if(arrayPos != string::npos)
+    type = type.substr(0, arrayPos);
+  
+  if(type != "int")
+  {
+    if(!table->classLookup(type))
+    {
+      //TODO: error
+      return false;
+    }
+  }
+  return true;
 }
 
 void VarDec::print(ostream* out)

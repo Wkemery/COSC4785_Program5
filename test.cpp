@@ -1,9 +1,11 @@
 class ClassA
 {
-//   int myvar1;
-//   int myvar2;
-//   A(ClassB var1, MyType var2, ClassA[][] var3)
-//   {
+  int myvar1;
+  int myvar2;
+  ClassA(ClassB var1, MyType var2, ClassA[][] var3)
+  {
+    ClassA[][] var;
+    
 //     ClassA temp;
 //     if(a < 5)
 //     {
@@ -16,16 +18,24 @@ class ClassA
 //         j = i;
 //       }
 //     }
-//   }
-// //   int myfunc(int x, int y, int z){}
-  MyType myfunc2(ClassA x, ClassB y, MyType z)
+  }
+//   int myfunc(int x, int y, int z){}
+  MyType[] myfunc2(ClassA[] x, ClassB y, MyType z)
   {
-    int a;
-    int b;
+//     ClassA myclassA;
+//     myclassA = x;
+//     int a;
+//     ClassZ varerr;
+//     int b;
+//     int ClassA;
+//     ClassA var;
 //     a = +(- b +2 -6 +a +b -5);
+//     ClassA c;
+//     c = x + c;
+//     c = myfuncA(y, z);
 //     a = b;
 //     a = myfuncint1();
-    a = myfuncint2(b, y);
+//     a = myfuncint2();
     
 //     if(a < 5)
 //     {
@@ -50,13 +60,15 @@ class ClassA
 //     }
   }
   
-  int myfuncint1(){}
+  int[] myfuncint1(){}
   int myfuncint2(int x, ClassB z){}
+  
+  ClassA myfuncA(ClassB var1, MyType var2){}
 
 }
 
-// class classB
-// {}
-// 
-// class MyType
-// {}
+class ClassB
+{}
+
+class MyType
+{}

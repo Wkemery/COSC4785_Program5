@@ -122,11 +122,14 @@ public:
   SymTable(SymTable* parent, string value);
   ~SymTable();
   int addChild(SymTable*);
-  Type* lookup(string identifier);
+  Type* lookup(string identifier) const;
   Type* lookup(string className, string identifier);
+  bool classLookup(string identifier) const;
   int insert(string identifier, Type* type);
   string getValue(void) const;
   Type* getClassType() const;
+  const SymTable* getRoot() const;
+  SymTable* lookupChild(string className) const;
   string findFunc() const;
   void print(ostream* out, int level);
 };
@@ -147,13 +150,11 @@ public:
   string getNodeName(void) const;
   int getNodeKind(void) const;
   virtual string getValue(void) const;
-//   virtual Type* getType() const;
   virtual void buildTable(SymTable* table);
   virtual Type* getTypeCheck(SymTable* table);
   virtual bool typeCheck(SymTable* table);
   void setErr();
   bool getErr();
-//   vector<Node*>* getChildren(void) const;
 };
 
 class ClassDec : public Node
@@ -299,6 +300,7 @@ class VarDec: public Node
 public:
   VarDec(Node* node1, string value);
   void buildTable(SymTable* table);
+  bool typeCheck(SymTable* table);
   void print(ostream* out);
 };
 
