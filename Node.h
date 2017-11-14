@@ -223,7 +223,7 @@ public:
   CondStatement(Node* node1, Node* node2, int kind);
   CondStatement(Node* node1, Node* node2, Node* node3, int kind);
   void buildTable(SymTable* table);
-  Type* getTypeCheck(SymTable*);  
+  bool typeCheck(SymTable*);  
   void print(ostream* out);
 };
 

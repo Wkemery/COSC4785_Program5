@@ -10,6 +10,7 @@ class ClassB
 {
   int z;
   int mymethod(int x, ClassA y){}
+  void mymethod(int x, ClassA y){}
 }
 
 class ClassC

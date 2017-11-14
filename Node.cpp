@@ -135,6 +135,12 @@ Type* SymTable::lookup(string className, string identifier)
   }
   
   Type* idType = classTable->lookup(identifier);
+  if(idType == 0)
+  {
+    //TODO: error
+    return 0;
+  }
+  
   if(idType->getClassType() != "")
   {
     //TODO: error
@@ -471,7 +477,7 @@ void ClassBody::print(ostream* out)
     {
       _subNodes[i]->print(out);
     }
-    }
+}
 /******************************************************************************/
 
 Statement::Statement(Node* node1, Node* node2, int kind)
@@ -495,6 +501,7 @@ Statement::Statement(int kind):Node("", "Statement", kind)
 
 void Statement::buildTable(SymTable* table)
 {
+  int ret;
   int childi = -1;
   if(_kind == STMNTWHILE) childi = 1;
   if(_kind == STMNTCOND) childi = 0;
@@ -508,6 +515,10 @@ void Statement::buildTable(SymTable* table)
     
     SymTable* myTable = new SymTable(table, name);
     table->addChild(myTable);
+    if(ret == -1)
+    {
+      //TODO: error
+    }
     _subNodes[childi]->buildTable(myTable);
   }
   else
@@ -589,7 +600,7 @@ bool Statement::typeCheck(SymTable* table)
     }
     case STMNTPRNTARGL:
     {
-      //TODO: figure out types for this???
+      return true;
       break;
     }
     case STMNTWHILE:
@@ -634,14 +645,12 @@ bool Statement::typeCheck(SymTable* table)
     case STMNTCOND:
     {
       //type check CondStatement
-      _subNodes[0]->typeCheck(_myTable);
-      break;
+      return _subNodes[0]->typeCheck(_myTable);
     }
     case STMNTBLOCK:
     {
       //typecheck block
-      _subNodes[0]->typeCheck(_myTable);
-      break;
+      return _subNodes[0]->typeCheck(_myTable);
     }
     case STMNTNAMEEMPTY:
     {
@@ -997,10 +1006,23 @@ void CondStatement::buildTable(SymTable* table)
   }
 } 
 
-Type* CondStatement::getTypeCheck(SymTable* table)
+bool CondStatement::typeCheck(SymTable* table)
 {
-  //TODO: stub
-  return 0;
+  //type check/get type of expression child
+  Type* expType = _subNodes[0]->getTypeCheck(table);
+  if(expType == 0) return false;
+  
+  //type check Statement child/children
+  bool stmnt1ret = _subNodes[1]->typeCheck(table);
+  if(!stmnt1ret) return false;
+  
+  if(_kind == CONDSTMNTELSE)
+  {
+    bool stmnt2ret = _subNodes[2]->typeCheck(table);
+    if(!stmnt2ret) return false;
+  }
+    
+  return true;
 }
 
 void CondStatement::print(ostream* out)
@@ -1093,12 +1115,13 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     }
     case NAMEEXP:
     {
-      //TODO
+      //TODO: something like x.y.z[2] = 5 or x = x.y.z[2]
 //       *out << "<Name> [<Expression>]";
       break;
     }
     case NAMEIDEXP:
-    {//TODO
+    {
+      //TODO: something like z[2] = 5 or x = z[2];
 //       *out << (PDebug ? _value : "ID") << " [<Expression>]";
       break;
     }
@@ -1444,7 +1467,113 @@ NewExpression::NewExpression(string simpletype, Node* type2, Node* brackexp, int
 
 Type* NewExpression::getTypeCheck(SymTable* table)
 {
-  //TODO: stub
+  switch(_kind)
+  {
+    case NEWEXPARG:
+    {
+      //constructor call
+      
+      //doesn't make sense for int, int has no constructor
+      if(_value == "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      //check to see if type even exists
+      if(!table->classLookup(_value))
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      //type exists, check to see call matches a Constructor in the class
+      
+      //get the types of the arguments 
+      Type* argsType = _subNodes[0]->getTypeCheck(table);
+      if(argsType == 0) return 0;
+      
+      //get type of constructor from symbol table
+      string mangledConsName = nameMangle(_value, argsType->getParams());
+      Type* consType = table->lookup(_value, mangledConsName);
+      if(consType == 0) return 0;
+      
+      //compare function type with arguments passed
+      if(argsType->getParams()->size() != consType->getParams()->size())
+      {
+        //TODO error
+        return 0;
+      }
+      
+      //compare each type one by one
+      for(unsigned int i = 0; i < consType->getParams()->size(); i++)
+      {
+        if(consType->getParams()->at(i) != argsType->getParams()->at(i))
+        {
+          //TODO error
+          return 0;
+        }
+      }
+      
+      delete argsType;
+      
+      return consType;
+    }
+    case NEWEXPBRACK:
+    {
+      //TODO: find out if expression must evaluate to int, x = new A[expression]
+//       *out << "<[Expression]>";
+      
+      break;
+    }
+    case NEWEXPBRACKMULTI:
+    {
+      //TODO: what the hell does new A[5][] even mean? or new A[5][][], and what does it mean to match the type of the lhs?
+//       *out << "[<BracketedExpression>] <RecursiveBrackets>";
+      break;
+    }
+    case NEWEXPMULTI:
+    {
+      //TODO: what does new A[][] mean?
+//       *out << "<RecursiveBrackets>";
+      break;
+    }
+    case NEWEXPEMPTY:
+    {
+      //TODO: ask if x = new A; is allowed. or just x = new int;
+      break;
+    }
+    case NEWEXPPAREN:
+    {
+      //default constructor call
+      
+      //doesn't make sense for int, int has no constructor
+      if(_value == "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      //check to see if type even exists
+      if(!table->classLookup(_value))
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      //type exists, check to see call matches a Constructor in the class
+      
+      //no arguments
+      
+      //get type of constructor from symbol table
+      string mangledConsName = nameMangle(_value, 0);
+      Type* consType = table->lookup(_value, mangledConsName);
+      if(consType == 0) return 0;
+      
+      
+      return consType;
+    }
+  }
   return 0;
 }
 
@@ -1521,6 +1650,7 @@ ConstructorDec::ConstructorDec(string value, Node* node1, int kind)
 void ConstructorDec::buildTable(SymTable* table)
 {
   // get parameter types from param list child
+  int ret;
   vector<string>* paramTypes = 0;
   vector<string>* paramNames = 0;
   string myRetType;
@@ -1551,19 +1681,29 @@ void ConstructorDec::buildTable(SymTable* table)
   
   //create mytype
   Type* myType = new Type("", "", paramTypes);
-  table->insert(nameMangle(_value, paramTypes), myType);
-  
+  ret = table->insert(nameMangle(_value, paramTypes), myType);
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   //create my symbol table
   SymTable* myTable = new SymTable(table, nameMangle(_value, paramTypes));
-  table->addChild(myTable);
-  
+  ret = table->addChild(myTable);
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   //add my paramters to my table for the code in the block, if I have any
   if(paramChildi >= 0)
   {
     for(unsigned int i = 0; i < paramTypes->size(); i++)
     {
       Type* paramType = new Type(paramTypes->at(i), paramTypes->at(i));
-      myTable->insert(paramNames->at(i), paramType);
+      ret = myTable->insert(paramNames->at(i), paramType);
+      if(ret == -1)
+      {
+        //TODO: error
+      }
     }
   }
   
@@ -1695,6 +1835,7 @@ void MethodDec::buildTable(SymTable* table)
   vector<string>* paramTypes = 0;
   vector<string>* paramNames = 0;
   string myRetType;
+  int ret;
 
   int paramChildi = -1;
   int typeChildi = -1;
@@ -1740,19 +1881,30 @@ void MethodDec::buildTable(SymTable* table)
   
   //create mytype
   Type* myType = new Type("", myRetType, paramTypes);
-  table->insert(nameMangle(_value, paramTypes), myType);
+  ret = table->insert(nameMangle(_value, paramTypes), myType);
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   
   //create my symbol table
   SymTable* myTable = new SymTable(table, nameMangle(_value, paramTypes));
-  table->addChild(myTable);
-  
+  ret = table->addChild(myTable);
+  if(ret == -1)
+  {
+    //TODO: error
+  }
   //add my paramters to my table for the code in the block, if I have any
   if(paramChildi >= 0)
   {
     for(unsigned int i = 0; i < paramTypes->size(); i++)
     {
       Type* paramType = new Type(paramTypes->at(i), paramTypes->at(i));
-      myTable->insert(paramNames->at(i), paramType);
+      ret = myTable->insert(paramNames->at(i), paramType);
+      if(ret == -1)
+      {
+        //TODO: error
+      }
     }
   }
   
@@ -1906,7 +2058,11 @@ void VarDec::buildTable(SymTable* table)
   Type* mytype = new Type(type, type);
   // add myself to symbol table
   ret = table->insert(_value, mytype);
-  if(ret != 0) cerr << "Var declared twice" << endl;
+  if(ret == -1) 
+  {
+    //TODO: error
+    cerr << "Var declared twice" << endl;
+  }
 }
 
 bool VarDec::typeCheck(SymTable* table)
