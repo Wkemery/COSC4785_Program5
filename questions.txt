@@ -1,12 +1,8 @@
 1.
   E.G. x = new A [Expression]. must expression evaluate to an int?
 2.
-  what the hell does new x = A[5][]; even mean? or x = new int[5][]?
+  what does x = new int[] mean?
 3.
-  what does x = new A[][] or x = new int[][] mean? versus last question
-4. 
-  what does the type of x have to be in questions 2 and 3?
+  what does x = new A[5] make sense?
 5.
   is x = new A; allowed? or just x = new int;
-6. 
-  x = new int() is not allowed?
