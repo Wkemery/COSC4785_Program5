@@ -887,25 +887,40 @@ vector<string>* RNode::getParamNames() const
 
 Type* RNode::getTypeCheck(SymTable* table)
 {
-
-    if(_kind == RECARG)
+  //TODO: Don't really like this function, myabe get rid of it...
+  if(_kind == RECARG)
+  {
+    //get all arg types
+    vector<string>* argTypes = new vector<string>();
+    for(unsigned int i = 0; i < _subNodes.size(); i++)
     {
-      //get all arg types
-      vector<string>* argTypes = new vector<string>();
-      for(unsigned int i = 0; i < _subNodes.size(); i++)
-      {
-        argTypes->push_back(_subNodes[i]->getTypeCheck(table)->getrval());
-      }
-      return new Type("","",argTypes);
+      argTypes->push_back(_subNodes[i]->getTypeCheck(table)->getrval());
     }
-    if(_kind == RECBRACKEXP)
-    {
-//       *out << "<BracketedExpression> --> " << _subNodes.size() << " <Expression>" 
-//       << endl;
-    }
-    return 0;
+    return new Type("","",argTypes);
+    //TODO: memory leak here
   }
-
+  if(_kind == RECBRACKEXP)
+  {
+    //have a bunch of children. all of which are expressions
+    string type = "";
+    for(unsigned int i = 0; i < _subNodes.size(); i++)
+    {
+      Type* expType = _subNodes[i]->getTypeCheck(table);
+      if(expType == 0) return 0;
+      
+      //expression must evaluate to int, x = new A[expression]
+      
+      if(expType->getrval() != "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      type.append("[]");
+    }
+    return new Type("", type);
+  }
+  return 0;
+}
 
 bool RNode::typeCheck(SymTable* table)
 {
@@ -1099,7 +1114,6 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     }
     case NAMEDOTID:
     {
-      //TODO: take into account the you might have x.y.meth().z 
       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
       if(nameType == 0) return 0;
       
@@ -1118,7 +1132,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
       if(nameType == 0) return 0;
       
-      Type* expType = _subNodes[0]->getTypeCheck(table);
+      Type* expType = _subNodes[1]->getTypeCheck(table);
       if(expType == 0) return 0;
       
       if(expType->getrval() != "int")
@@ -1563,31 +1577,98 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       
       delete argsType;
       
-      return consType;
+      return new Type("", _value);
     }
     case NEWEXPBRACK:
     {
-      //TODO: find out if expression must evaluate to int, x = new A[expression]
-//       *out << "<[Expression]>";
+      //child is an RNode
+      Type* expBrackType = _subNodes[0]->getTypeCheck(table);
+      if(expBrackType == 0) return 0;
       
-      break;
+      if(_value != "int")
+      {
+        // check to see if type exists
+        if(!table->classLookup(_value))
+        {
+          //TODO: error
+          return 0;
+        }
+      }
+      
+      //type exists or is an int
+      
+      string type = _value;
+      //add on all []s
+      type.append(expBrackType->getrval());
+      
+      return new Type("", type);
+      //TODO: memory leak caused here
     }
     case NEWEXPBRACKMULTI:
     {
-      //TODO: what the hell does new A[5][] even mean? or new A[5][][], and what does it mean to match the type of the lhs?
-//       *out << "[<BracketedExpression>] <RecursiveBrackets>";
-      break;
+      //TODO: still don't know what new int[5][] does??
+      
+      //two children 
+      //first is RNode
+      Type* expBrackType = _subNodes[0]->getTypeCheck(table);
+      if(expBrackType == 0) return 0;
+      
+      //second is Multibracks
+      string multibracksType = ((Multibracks*)_subNodes[1])->getType();
+      
+      if(_value != "int")
+      {
+        // check to see if type exists
+        if(!table->classLookup(_value))
+        {
+          //TODO: error
+          return 0;
+        }
+      }
+      
+      //type exists or is an int
+      string type = _value;
+      type.append(expBrackType->getrval());
+      type.append(multibracksType);
+
+      return new Type("", type);
+      //TODO: memory leak caused here
     }
     case NEWEXPMULTI:
     {
-      //TODO: what does new A[][] mean?
-//       *out << "<RecursiveBrackets>";
-      break;
+      //TODO: still don't know what new A[] means or actually does?
+      //child is Multibracks
+      string multibracksType = ((Multibracks*)_subNodes[0])->getType();
+      
+      if(_value != "int")
+      {
+        // check to see if type exists
+        if(!table->classLookup(_value))
+        {
+          //TODO: error
+          return 0;
+        }
+      }
+      
+      //type exists or is an int
+      string type = _value;
+      type.append(multibracksType);
+      
+      return new Type("", type);
+      //TODO: memory leak caused here
     }
     case NEWEXPEMPTY:
     {
       //TODO: ask if x = new A; is allowed. or just x = new int;
-      break;
+      //assuming x = new A is not allowed.
+      if(_value != "int")
+      {
+        //TODO: error
+        return 0;
+      }
+      
+      return new Type("", _value);
+      //TODO: memory leak caused here
     }
     case NEWEXPPAREN:
     {
@@ -1617,7 +1698,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       if(consType == 0) return 0;
       
       
-      return consType;
+      return new Type("", _value);
     }
   }
   return 0;

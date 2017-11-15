@@ -1,10 +1,12 @@
 1.
-  E.G. x = new A [Expression]. must expression evaluate to an int?
+  E.G. x = new A [Expression]. must expression evaluate to an int? I think yes
 2.
-  what does x = new int[] mean?
+  what does x = new int[] actually do?
 3.
-  what does x = new A[5] make sense?
+  what does x = new A[5] make sense? right now I allow it... I think so
+   does it call default constructor?
 5.
-  is x = new A; allowed? or just x = new int;
+  is x = new A; allowed? or just x = new int; 
+    if x = new A[5] is allowed, then surely x = new A is allowed
 5.
   are class variables private?
