@@ -1099,6 +1099,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     }
     case NAMEDOTID:
     {
+      //TODO: take into account the you might have x.y.meth().z 
       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
       if(nameType == 0) return 0;
       
@@ -1111,24 +1112,64 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
         return table->lookup(nameType->getlval(), _value);
       else
         return table->lookup(nameType->getlval(), mangledName);
-      break;
     }
     case NAMEEXP:
     {
-      //TODO: something like x.y.z[2] = 5 or x = x.y.z[2]
-//       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
-//       if(nameType == 0) return 0;
-//       
-//       Type* expType = ((*)_subNodes[0])->getTypeCheck(table, "");
+      Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
+      if(nameType == 0) return 0;
       
-//       *out << "<Name> [<Expression>]";
-      break;
+      Type* expType = _subNodes[0]->getTypeCheck(table);
+      if(expType == 0) return 0;
+      
+      if(expType->getrval() != "int")
+      {
+        //TODO: Error
+        return 0;
+      }
+      
+      //remove any [] from type
+      string type = nameType->getlval();
+      unsigned int arrayPos = type.find_first_of("[");
+      if(arrayPos == string::npos)
+      {
+        //TODO: error
+        return 0;
+      }
+      type = type.substr(0, arrayPos);
+      
+      //the type of name[expression] is the type of name minus the brackets
+      return new Type(type, type);
+      //TODO: memory leak caused here
+      
     }
     case NAMEIDEXP:
     {
-      //TODO: something like z[2] = 5 or x = z[2];
-//       *out << (PDebug ? _value : "ID") << " [<Expression>]";
-      break;
+    
+      Type* idType =  table->lookup(_value);
+      if(idType == 0) return 0;
+      
+      Type* expType = _subNodes[0]->getTypeCheck(table);
+      if(expType == 0) return 0;
+      
+      if(expType->getrval() != "int")
+      {
+        //TODO: Error
+        return 0;
+      }
+      
+      //remove any [] from type
+      string type = idType->getlval();
+      unsigned int arrayPos = type.find_first_of("[");
+      if(arrayPos == string::npos)
+      {
+        //TODO: error
+        return 0;
+      }
+      type = type.substr(0, arrayPos);
+      
+      //the type of id[expression] is the type of id minus the brackets
+      return new Type(type, type);
+      //TODO: memory leak caused here
     }
   }
   

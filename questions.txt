@@ -6,3 +6,5 @@
   what does x = new A[5] make sense?
 5.
   is x = new A; allowed? or just x = new int;
+5.
+  are class variables private?
