@@ -1116,6 +1116,11 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     case NAMEEXP:
     {
       //TODO: something like x.y.z[2] = 5 or x = x.y.z[2]
+//       Type* nameType = ((Name*)_subNodes[0])->getTypeCheck(table, "");
+//       if(nameType == 0) return 0;
+//       
+//       Type* expType = ((*)_subNodes[0])->getTypeCheck(table, "");
+      
 //       *out << "<Name> [<Expression>]";
       break;
     }
