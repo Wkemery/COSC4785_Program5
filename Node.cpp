@@ -139,21 +139,24 @@ Type* SymTable::lookup(string className, string identifier)
   const SymTable* classTable = rootTable->lookupChild(className);
   if(classTable == 0)
   {
-    //TODO: error
+    cerr << "Type Error: " << "Class Name " << className << " Does Not exist"  
+    << endl;
     return 0;
   }
   
   Type* idType = classTable->lookup(identifier);
   if(idType == 0)
   {
-    //TODO: error
+    cerr << "Type Error: " << "Identfier " << identifier 
+    << " Does Not exist within " << className   
+    << endl;
     return 0;
   }
   
   if(idType->getClassType() != "")
   {
-    //TODO: error
-    return 0;
+    cerr << "Fatal Internal Error" << endl; 
+    exit(1);
   }
   
   return idType;
@@ -172,7 +175,7 @@ SymTable* SymTable::lookupChild(string className) const
   auto it = _children.find(className);
   if(it == _children.end())
   {
-    //TODO: error
+    //TODO: error skip for now... i think its just a duplicate error
     return 0;
   }
   return it->second;
@@ -937,7 +940,8 @@ Type* RNode::getTypeCheck(SymTable* table)
       
       if(expType->getrval() != "int")
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Expression must evaluate to integer within []" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       type.append("[]");
@@ -1165,7 +1169,8 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       
       if(nameType->getlval() == "")
       {
-        //TODO error
+        cerr << "Type Error: "  << _value << " Invalid L value" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       if(mangledName == "") 
@@ -1183,7 +1188,8 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       
       if(expType->getrval() != "int")
       {
-        //TODO: Error
+        cerr << "Type Error: "  << "Expression must evaluate to integer within []" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1192,8 +1198,8 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       unsigned int arrayPos = type.find_first_of("[");
       if(arrayPos == string::npos)
       {
-        //TODO: error
-        return 0;
+        cerr << "Fatal Internal Error" << endl;
+        exit(1);
       }
       type = type.substr(0, arrayPos);
       
@@ -1213,7 +1219,8 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       
       if(expType->getrval() != "int")
       {
-        //TODO: Error
+        cerr << "Type Error: "  << "Expression must evaluate to integer within []" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1222,7 +1229,8 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       unsigned int arrayPos = type.find_first_of("[");
       if(arrayPos == string::npos)
       {
-        //TODO: error
+        cerr << "Fatal Internal Error" << endl;
+        exit(1);
         return 0;
       }
       type = type.substr(0, arrayPos);
@@ -1355,7 +1363,8 @@ Type* Expression::getTypeCheck(SymTable* table)
       
       if(expType1->getrval() != expType2->getrval())
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Expressions must be of the same type" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1389,7 +1398,8 @@ Type* Expression::getTypeCheck(SymTable* table)
       //compare function type with arguments passed
       if(argsType->getParams()->size() != funcType->getParams()->size())
       {
-        //TODO error
+        cerr << "Type Error: "  << "Function paramter type mismatch" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1398,7 +1408,8 @@ Type* Expression::getTypeCheck(SymTable* table)
       {
         if(funcType->getParams()->at(i) != argsType->getParams()->at(i))
         {
-          //TODO error
+          cerr << "Type Error: "  << "Function paramter type mismatch" 
+          << " Line " << _lineNumber << endl;
           return 0;
         }
       }
@@ -1579,17 +1590,13 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     {
       //constructor call
       
-      //doesn't make sense for int, int has no constructor
-      if(_value == "int")
-      {
-        //TODO: error
-        return 0;
-      }
+      //doesn't make sense for int, int has no constructor, int here is syntax error
       
       //check to see if type even exists
       if(!table->classLookup(_value))
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1607,7 +1614,8 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //compare function type with arguments passed
       if(argsType->getParams()->size() != consType->getParams()->size())
       {
-        //TODO error
+        cerr << "Type Error: "  << "Function paramter type mismatch" 
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
@@ -1616,7 +1624,8 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       {
         if(consType->getParams()->at(i) != argsType->getParams()->at(i))
         {
-          //TODO error
+          cerr << "Type Error: "  << "Function paramter type mismatch" 
+          << " Line " << _lineNumber << endl;
           return 0;
         }
       }
@@ -1636,7 +1645,8 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          //TODO: error
+          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          << " Line " << _lineNumber << endl;
           return 0;
         }
       }
@@ -1665,7 +1675,8 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          //TODO: error
+          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          << " Line " << _lineNumber << endl;
           return 0;
         }
       }
@@ -1688,7 +1699,8 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          //TODO: error
+          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          << " Line " << _lineNumber << endl;
           return 0;
         }
       }
@@ -1705,7 +1717,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //assuming x = new A is not allowed.
       if(_value != "int")
       {
-        //TODO: error
+        //error classnone dne
         return 0;
       }
       
@@ -1716,17 +1728,11 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     {
       //default constructor call, default consructor always exists
       
-      //doesn't make sense for int, int has no constructor
-      if(_value == "int")
-      {
-        //TODO: error
-        return 0;
-      }
-      
       //check to see if type even exists
       if(!table->classLookup(_value))
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+        << " Line " << _lineNumber << endl;
         return 0;
       }
       
