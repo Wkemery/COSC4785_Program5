@@ -1,74 +1,34 @@
 class ClassA
 {
-  int myvar1;
-  int myvar2;
-  ClassA(ClassB var1, MyType var2, ClassA[][] var3)
+  int myint1;
+  int myint2;
+  int[] myintarr1;
+  int [][] myintarr2;
+  ClassA myClassA1;
+  ClassB myClassB1;
+  
+  void method1()
   {
-    ClassA[][] var;
+//     method1 = myint1; //error unrecognized identifier method1
+//     myint1 = method1; //error unrecognized identifier method1
+//     myClassA1 = myint1; //error type mismatch
+//     myint1 = myClassA1; //error type mismatch
+//     method2(myint1, myint2, myClassB1);//error no matching function call
+//     while(myClassA1){}//error expression does not evaluate to boolean
+//     return 0; //error does not match func return type
     
-//     ClassA temp;
-//     if(a < 5)
-//     {
-//       int i;
-//       i = 0;
-//       while(i < 5)
-//       {
-//         int j;
-//         i = i + 1;
-//         j = i;
-//       }
-//     }
-  }
-//   int myfunc(int x, int y, int z){}
-  MyType[] myfunc2(ClassA[] x, ClassB y, MyType z)
-  {
-//     ClassA myclassA;
-//     myclassA = x;
-//     int a;
-//     ClassZ varerr;
-//     int b;
-//     int ClassA;
-//     ClassA var;
-//     a = +(- b +2 -6 +a +b -5);
-//     ClassA c;
-//     c = x + c;
-//     c = myfuncA(y, z);
-//     a = b;
-//     a = myfuncint1();
-//     a = myfuncint2();
-    
-//     if(a < 5)
-//     {
-//       int i;
-//       i = 0;
-//       {
-//         int k;
-//         {int l;
-//           {
-//             int m;
-//           }
-//         }
-//       }
-//       while(i < 5)
-//       {
-//         int j;
-//         i = i + 1;
-//         j = i;
-//       }
-// //       x = new ClassA();
-// //       y = new ClassB();
-//     }
   }
   
-  int[] myfuncint1(){}
-  int myfuncint2(int x, ClassB z){}
-  
-  ClassA myfuncA(ClassB var1, MyType var2){}
-
+  int method2(int x, ClassA y, ClassB c)
+  {
+//     return; //error does not match func return type
+  }
 }
+
+// class ClassA{} //error class declared twice
 
 class ClassB
 {}
 
-class MyType
+class ClassC
 {}

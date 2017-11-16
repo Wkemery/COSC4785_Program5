@@ -12,7 +12,7 @@ class ClassB
   int z;
   int[] iarr;
   int mymethod(int x, ClassA y){}
-  void mymethod(int x, ClassA y){}
+//   void mymethod(int x, ClassA y){}
 }
 
 class ClassC
@@ -40,10 +40,11 @@ class ClassC
 //     a = new int;
     
 //     myCobject = new C; //error
-//     myCobject = new ClassC(); //correct
-//     myCobject = new ClassC(a);//correct
+//     myCobject = new ClassC; //error
+    myCobject = new ClassC(); //correct
+    myCobject = new ClassC(a);//correct
 //     objArray = new ClassA[][][];//error
-//     objArray = new ClassA[][];//correct
+    objArray = new ClassA[][];//correct
     objArray = new ClassA[a][5];//correct
     objArray = new ClassA[5][5];//correct
     objArray = new ClassA[a][];//correct
@@ -52,7 +53,7 @@ class ClassC
     objArray = new ClassA[a][x.bs.z];//correct
 //     objArray = new ClassA[a][x.y.z];//error
     objArray = new ClassA[a][x.y[0].z];//correct
-
+    
     
 //     objArray = new ClassA[myCobject][];//Error
     

@@ -41,6 +41,8 @@ int main()
   
   symbolTable->print(&cout, 0);
   
+  delete symbolTable;
+  
   for(unsigned int i = 0; i < forest.size(); i++)
   {
     delete forest[i];

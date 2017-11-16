@@ -104,6 +104,7 @@ private:
   string _classType;
 public:
   Type(string lval, string rval, vector<string>* parameters, string classType);
+  ~Type();
   string getlval(void) const;
   string getrval(void) const;
   vector<string>* getParams(void);
@@ -144,6 +145,7 @@ protected:
   const int _kind;
   bool _err;
   string _type;
+  int _lineNumber;
 public:
   virtual ~Node();
   virtual void print(ostream *out) = 0;
@@ -153,6 +155,7 @@ public:
   virtual void buildTable(SymTable* table);
   virtual Type* getTypeCheck(SymTable* table);
   virtual bool typeCheck(SymTable* table);
+  void setLineNumber(int linenum);
   void setErr();
   bool getErr();
 };

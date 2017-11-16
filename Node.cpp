@@ -47,6 +47,14 @@ Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, s
 :_lval(lval), _rval(rval), _parameters(parameters), _classType(classType)
 {}
 
+Type::~Type()
+{
+  if(_parameters!= 0)
+  {
+    delete _parameters;
+  }
+}
+
 string Type::getlval(void) const{return _lval; }
 
 string Type::getrval(void) const {return _rval;}
@@ -89,11 +97,11 @@ SymTable::SymTable(SymTable* parent, string value):_parent(parent), _value(value
 
 SymTable::~SymTable()
 {
-  for(auto it = _entries.begin(); it != _entries.end(); it++)
+  for(auto it = _children.begin(); it!= _children.end(); it ++)
   {
     delete it->second;
   }
-  for(auto it = _children.begin(); it!= _children.end(); it ++)
+  for(auto it = _entries.begin(); it != _entries.end(); it++)
   {
     delete it->second;
   }
@@ -121,7 +129,8 @@ Type* SymTable::lookup(string className, string identifier)
   
   if(!this->classLookup(className))
   {
-    //TODO: error
+    cerr << "Type Error: " << "Class Name " << className << " Does Not exist"  
+    << endl;
     return 0;
   }
   
@@ -168,7 +177,6 @@ SymTable* SymTable::lookupChild(string className) const
   }
   return it->second;
 }
-
 
 bool SymTable::classLookup(string identifier) const
 {
@@ -239,6 +247,7 @@ void SymTable::print(ostream* out, int level)
     if(it2 != _children.end())
     {
       it2->second->print(out, level + 1);
+      delete it2->second;
       _children.erase(it2);
     }    
   }
@@ -253,8 +262,9 @@ void SymTable::print(ostream* out, int level)
 /******************************************************************************/
 
 Node::Node(string value = "", string name = "", int kind = 0)
-:_value(value), _nodeName(name), _kind(kind), _err(false)
+:_value(value), _nodeName(name), _kind(kind), _err(false), _lineNumber(0)
 {}
+
 Node::~Node()
 {
   for(unsigned int i = 0; i < _subNodes.size(); i++)
@@ -265,6 +275,7 @@ Node::~Node()
 void Node::setErr() {
   _err = true;
 }
+
 bool Node::getErr() {return _err;}
 
 int Node::getNodeKind(void) const {return _kind;}
@@ -279,6 +290,8 @@ string Node::getValue(void) const {return _value;}
 Type* Node::getTypeCheck(SymTable* table) {return 0;}
 
 void Node::buildTable(SymTable* table) {return;}
+
+void Node:: setLineNumber(int linenum) { _lineNumber = linenum;}
 
 bool Node::typeCheck(SymTable* table) {return true;}
 
@@ -298,7 +311,9 @@ void ClassDec::buildTable(SymTable* table)
   ret = table->insert(_value, mytype);
   if(ret == -1)
   {
-    //TODO: error
+    cerr << "Type Error: Class " << _value << " Declared Twice" 
+    << " Line " << _lineNumber << endl;
+    return;
   }
   
   //create a new symbol table - my symbol table 
@@ -306,7 +321,10 @@ void ClassDec::buildTable(SymTable* table)
   ret = table->addChild(myTable);
   if(ret == -1)
   {
-    //TODO: error
+    //should never happen
+    cerr << "Type Error: Class " << _value << " Declared Twice" 
+    << " Line " << _lineNumber << endl;
+    return;
   }
   //call build table on your child - the classbody
   _subNodes[0]->buildTable(myTable);
@@ -514,10 +532,12 @@ void Statement::buildTable(SymTable* table)
     string name = to_string(randname);
     
     SymTable* myTable = new SymTable(table, name);
-    table->addChild(myTable);
+    ret = table->addChild(myTable);
     if(ret == -1)
     {
-      //TODO: error
+      cerr << "Fatal Internal Error!" << endl;
+      exit(1);
+      return;
     }
     _subNodes[childi]->buildTable(myTable);
   }
@@ -547,21 +567,23 @@ bool Statement::typeCheck(SymTable* table)
       
       if(nameType->getlval() == "")
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Invalid L value" 
+        << " Line " << _lineNumber << endl;
         return false;
       }
       if(expType->getrval() == "") 
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Invalid R value" 
+        << " Line " << _lineNumber << endl;
         return false;
       }
       
       if(nameType->getlval() != expType->getrval())
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Type Mismatch" 
+        << " Line " << _lineNumber << endl;
         return false;
       }
-      //TODO: possible memory leak when expType is just a int that was just a number
       break;
     }
     case STMNTNAMEARGL:
@@ -577,19 +599,13 @@ bool Statement::typeCheck(SymTable* table)
       Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, mangledFuncName);
       if(funcType == 0) return false;
       
-      //compare function type with arguments passed
-      if(argsType->getParams()->size() != funcType->getParams()->size())
-      {
-        //TODO error
-        return false;
-      }
-      
       //compare each type one by one
       for(unsigned int i = 0; i < funcType->getParams()->size(); i++)
       {
         if(funcType->getParams()->at(i) != argsType->getParams()->at(i))
         {
-          //TODO error
+          cerr << "Type Error: "  << "Function call Parameter Type mismatch" 
+          << " Line " << _lineNumber << endl;
           return false;
         }
       }
@@ -611,7 +627,8 @@ bool Statement::typeCheck(SymTable* table)
       if(expType == 0) return false;
       if(expType->getrval() != "int")
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Expression Does Not Evaluate to Boolean" 
+        << " Line " << _lineNumber << endl;
         return false;
       }
       
@@ -622,22 +639,30 @@ bool Statement::typeCheck(SymTable* table)
     case SMTNTRETURN:
     {
       // get the function name from SymTable _value
-      Type* funcType = table->lookup(table->findFunc());
+      Type* funcType = _myTable->lookup(_myTable->findFunc());
+      if(funcType == 0) return false;
       // still give blocks random names, but rely on mangling, every func starts with _Z
       
-      //get type of expression
-      Type* expType = _subNodes[0]->getTypeCheck(_myTable);
-      if(expType == 0) return false;
-      if(expType->getrval() != "int")
+      Type* expType = 0;
+      //if there is not an expression type is void
+      if(_subNodes.size() == 0)
       {
-        //TODO: error
-        return false;
+        expType =  new Type("", "void");
+        //TODO: memory leak here
       }
+      else
+      {
+        //get type of expression
+        expType = _subNodes[0]->getTypeCheck(_myTable);
+        if(expType == 0) return false;
+      }
+
       
       // check function ret type matches type of the expression
       if(funcType->getrval() != expType->getrval())
       {
-        //TODO: error
+        cerr << "Type Error: "  << "Return Statement does not match function return type" 
+        << " Line " << _lineNumber << endl;
         return false;
       }
       break;
@@ -918,6 +943,7 @@ Type* RNode::getTypeCheck(SymTable* table)
       type.append("[]");
     }
     return new Type("", type);
+    //TODO: memory leak here
   }
   return 0;
 }
@@ -1107,10 +1133,30 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
     }
     case NAMEID:
     {
-      if(mangledName == "") 
-        return table->lookup(_value);
+      Type* ret = 0;
+      
+      if(mangledName == "")
+      {
+        ret = table->lookup(_value);
+        if(ret == 0)
+        {
+          cerr << "Type Error: "  << _value << " Unrecognized Identfier" 
+          << " Line " << _lineNumber << endl;
+        }
+      }
       else
-        return table->lookup(mangledName);
+      {
+        ret = table->lookup(mangledName);
+        if(ret == 0)
+        {
+          cerr << "Type Error: "  << _value << " No Matching Function Definition" 
+          << " Line " << _lineNumber << endl;
+        }
+      }
+      
+
+      
+      return ret;
     }
     case NAMEDOTID:
     {
@@ -1594,7 +1640,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
           return 0;
         }
       }
-      
+      //default constructor always exists
       //type exists or is an int
       
       string type = _value;
@@ -1606,8 +1652,6 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     }
     case NEWEXPBRACKMULTI:
     {
-      //TODO: still don't know what new int[5][] does??
-      
       //two children 
       //first is RNode
       Type* expBrackType = _subNodes[0]->getTypeCheck(table);
@@ -1636,7 +1680,6 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     }
     case NEWEXPMULTI:
     {
-      //TODO: still don't know what new A[] means or actually does?
       //child is Multibracks
       string multibracksType = ((Multibracks*)_subNodes[0])->getType();
       
@@ -1659,7 +1702,6 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     }
     case NEWEXPEMPTY:
     {
-      //TODO: ask if x = new A; is allowed. or just x = new int;
       //assuming x = new A is not allowed.
       if(_value != "int")
       {
@@ -1672,7 +1714,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
     }
     case NEWEXPPAREN:
     {
-      //default constructor call
+      //default constructor call, default consructor always exists
       
       //doesn't make sense for int, int has no constructor
       if(_value == "int")
@@ -1688,15 +1730,12 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         return 0;
       }
       
-      //type exists, check to see call matches a Constructor in the class
+      //type exists, default constructor always exists
       
-      //no arguments
-      
-      //get type of constructor from symbol table
+      //get type of constructor from symbol table, no args
       string mangledConsName = nameMangle(_value, 0);
       Type* consType = table->lookup(_value, mangledConsName);
       if(consType == 0) return 0;
-      
       
       return new Type("", _value);
     }
@@ -1818,6 +1857,7 @@ void ConstructorDec::buildTable(SymTable* table)
   ret = table->addChild(myTable);
   if(ret == -1)
   {
+    cerr << "test error" << endl;
     //TODO: error
   }
   //add my paramters to my table for the code in the block, if I have any
@@ -2011,6 +2051,7 @@ void MethodDec::buildTable(SymTable* table)
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
+    cerr << "temp error" << endl;
     //TODO: error
   }
   
