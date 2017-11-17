@@ -27,6 +27,7 @@ class ClassA
 //     myint1 = myClassA1; //error type mismatch
 //     method2(myint1, myint2, myClassB1);//error no matching function call
 //     while(myClassA1){}//error expression does not evaluate to boolean
+//     if(myClassA1){}//error expression does not evaluate to boolean
 //     return 0; //error does not match func return type
 //     myClassB1.x = 5;//error class b does not have a member named x
 //     myintarr1 = new int[myClassA1];//error [doesnt evaluate to int]

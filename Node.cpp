@@ -1057,6 +1057,13 @@ bool CondStatement::typeCheck(SymTable* table)
   Type* expType = _subNodes[0]->getTypeCheck(table);
   if(expType == 0) return false;
   
+  if(expType->getrval() != "int")
+  {
+    cerr << "Type Error: "  << "Expression Does Not Evaluate to Boolean" 
+    << " Line " << _lineNumber << endl;
+    return false;
+  }
+  
   //type check Statement child/children
   bool stmnt1ret = _subNodes[1]->typeCheck(table);
   if(!stmnt1ret) return false;
