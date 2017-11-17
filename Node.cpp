@@ -71,7 +71,7 @@ void Type::print(ostream* out)
   {
     if(_rval == "" && _lval == "")
     {
-      *out << "Const ";
+      *out << "Constructor ";
     }
     else
     {
@@ -1712,18 +1712,18 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       return new Type("", type);
       //TODO: memory leak caused here
     }
-    case NEWEXPEMPTY:
-    {
-      //assuming x = new A is not allowed.
-      if(_value != "int")
-      {
-        //error classnone dne
-        return 0;
-      }
-      
-      return new Type("", _value);
-      //TODO: memory leak caused here
-    }
+//     case NEWEXPEMPTY:
+//     {
+//       //assuming x = new A is not allowed.
+//       if(_value != "int")
+//       {
+//         //error classnone dne
+//         return 0;
+//       }
+//       
+//       return new Type("", _value);
+//       //TODO: memory leak caused here
+//     }
     case NEWEXPPAREN:
     {
       //default constructor call, default consructor always exists
@@ -1832,7 +1832,9 @@ void ConstructorDec::buildTable(SymTable* table)
   
   if(table->getValue() != _value)
   {
-    cerr << "Constructor name not equal to class name" << endl;
+    cerr << "Type Error: "  << "Constructor " << _value << " Not equal to Class Name \""
+    << table->getValue() << "\" Line " << _lineNumber << endl;
+    return;
   }
   
   if(_kind == CONSTDEC)
@@ -1856,15 +1858,19 @@ void ConstructorDec::buildTable(SymTable* table)
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
-    //TODO: error
+    cerr << "Type Error: "  << "Constructor " << _value << " Declared Twice"
+    << " Line " << _lineNumber << endl;
+    return;
   }
   //create my symbol table
   SymTable* myTable = new SymTable(table, nameMangle(_value, paramTypes));
   ret = table->addChild(myTable);
   if(ret == -1)
   {
-    cerr << "test error" << endl;
-    //TODO: error
+    //shouldn't get this error because the first one should stop it
+    cerr << "Type Error: "  << "Constructor " << _value << " Declared Twice"
+    << " Line " << _lineNumber << endl;
+    return;
   }
   //add my paramters to my table for the code in the block, if I have any
   if(paramChildi >= 0)
@@ -1875,7 +1881,9 @@ void ConstructorDec::buildTable(SymTable* table)
       ret = myTable->insert(paramNames->at(i), paramType);
       if(ret == -1)
       {
-        //TODO: error
+        cerr << "Type Error: Local variable " << paramNames->at(i) <<  " declared twice" 
+        << " Line " << _lineNumber << endl;
+        return;
       }
     }
   }
@@ -1919,7 +1927,8 @@ bool ConstructorDec::typeCheck(SymTable* table)
       {
         if(!table->classLookup(type))
         {
-          //TODO: error
+          cerr << "Type Error: Invalid Type " << type 
+          << " Line " << _lineNumber << endl;
           return false;
         }
       }
@@ -2057,8 +2066,9 @@ void MethodDec::buildTable(SymTable* table)
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
-    cerr << "temp error" << endl;
-    //TODO: error
+    cerr << "Type Error: "  << "Method " << _value << " Declared Twice"
+    << " Line " << _lineNumber << endl;
+    return;
   }
   
   //create my symbol table
@@ -2066,8 +2076,11 @@ void MethodDec::buildTable(SymTable* table)
   ret = table->addChild(myTable);
   if(ret == -1)
   {
-    //TODO: error
+    cerr << "Type Error: "  << "Method " << _value << " Declared Twice"
+    << " Line " << _lineNumber << endl;
+    return;
   }
+  
   //add my paramters to my table for the code in the block, if I have any
   if(paramChildi >= 0)
   {
@@ -2077,7 +2090,9 @@ void MethodDec::buildTable(SymTable* table)
       ret = myTable->insert(paramNames->at(i), paramType);
       if(ret == -1)
       {
-        //TODO: error
+        cerr << "Type Error: Local variable " << paramNames->at(i) <<  " declared twice" 
+        << " Line " << _lineNumber << endl;
+        return;
       }
     }
   }
@@ -2137,7 +2152,8 @@ bool MethodDec::typeCheck(SymTable* table)
     {
       if(!table->classLookup(type))
       {
-        //TODO: error
+        cerr << "Type Error: Invalid Type " << type 
+        << " Line " << _lineNumber << endl;
         return false;
       }
     }
@@ -2160,7 +2176,8 @@ bool MethodDec::typeCheck(SymTable* table)
       {
         if(!table->classLookup(type))
         {
-          //TODO: error
+          cerr << "Type Error: Invalid Type " << type 
+          << " Line " << _lineNumber << endl;
           return false;
         }
       }
@@ -2234,8 +2251,9 @@ void VarDec::buildTable(SymTable* table)
   ret = table->insert(_value, mytype);
   if(ret == -1) 
   {
-    //TODO: error
-    cerr << "Var declared twice" << endl;
+    cerr << "Type Error: local variable " << _value <<  " declared twice" 
+    << " Line " << _lineNumber << endl;
+    return;
   }
 }
 
@@ -2254,7 +2272,8 @@ bool VarDec::typeCheck(SymTable* table)
   {
     if(!table->classLookup(type))
     {
-      //TODO: error
+      cerr << "Type Error: Invalid Type " << type 
+      << " Line " << _lineNumber << endl;
       return false;
     }
   }

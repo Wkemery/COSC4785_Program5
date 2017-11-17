@@ -2,13 +2,25 @@ class ClassA
 {
   int myint1;
   int myint2;
+//   int myint2; //error var declared twice
   int[] myintarr1;
   int [][] myintarr2;
   ClassA myClassA1;
+//   ClassA myClassA1; //error var declared twice
   ClassB myClassB1;
+//   int myClassB1; //error var declared twice
+//   ClassNone mybadvar;//error invalid type
+  
+  ClassA(){}
+//   ClassA(){}//error constructor delcared twice
+  
+//   A(){}//Error constructor name does not match class name
+//   ClassA(int var1, ClassNone var2){}//error invalid type classNone
+//   ClassA(int var1, int var1){} //error var1 declared twice
   
   void method1()
   {
+//     myint1 = new int;//syntax error
 //     method1 = myint1; //error unrecognized identifier method1
 //     myint1 = method1; //error unrecognized identifier method1
 //     myClassA1 = myint1; //error type mismatch
@@ -19,21 +31,25 @@ class ClassA
 //     myClassB1.x = 5;//error class b does not have a member named x
 //     myintarr1 = new int[myClassA1];//error [doesnt evaluate to int]
 //     myintarr1 = new int[new int[]];//error [doesnt evaluate to int]
-//     myintarr1[new int] = 5;//shit goddamnit new int is an int reference not a number
+//     myintarr1[new int] = 5;//syntax error [doesnt evaluate to int]
+//     myintarr1[new ClassA()] = 5; //error [doesnt evaluate to int]
 //     myintarr1[myClassA1] = 5;//error [doesnt evaluate to int]
-//     myint1 = myint2 + myClassA1;
+//     myint1 = myint2 + myClassA1;//errro expressions different types
 //     myint1 = new ClassNone();//error classnone dne
 //     myint1 = new ClassNone(myint1);//error classnone dne
 //     myint1 = new ClassNone[][];//error classnone dne
 //     myint1 = new ClassNone[5][];//error classnone dne
-    
-    
   }
   
   int method2(int x, ClassA y, ClassB c)
   {
 //     return; //error does not match func return type
   }
+//   int method2(int a, ClassA b, ClassB c){} //error method redeclared
+//   void method2(int a, ClassA b, ClassB c){}//error method redeclared
+//   int method3(ClassA x, ClassA x){} //error x declared twice
+//   ClassNone method4(){} //error invalid type
+//   void method5(ClassNone x, ClassA y){}//error invalid type
 }
 
 // class ClassA{} //error class declared twice
