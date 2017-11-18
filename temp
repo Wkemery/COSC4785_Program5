@@ -1,6 +1,33 @@
-class myclass{
-  void meth(){
-    a.meth();
-  }
+//time to test name. stuff
 
+class ClassA
+{
+  ClassB[] y;
+  ClassB bs;
 }
+
+class ClassB
+{
+  int z;
+  int[] iarr;
+  int mymethod(int x, ClassA y){}
+}
+
+class ClassC
+{
+  ClassA myClassA1;
+  int myint1;
+  ClassC(){}
+  ClassC(int x){}
+  void method1()
+  {
+    int a;
+    int[] myarray;
+    ClassC myCobject;
+    ClassA[][] objArray;
+  }
+  
+  int method2(){}
+  
+}
+

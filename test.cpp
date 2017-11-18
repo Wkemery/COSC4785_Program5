@@ -70,3 +70,59 @@ class ClassC
   int method2(){}
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class MethodDec : public SymbolTable
+{
+public:
+  MethodDec(SymbolTable * p) : SymbolTable(p)
+  {
+    type = METHODTYPE;
+  }
+}
+
+
+

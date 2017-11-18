@@ -263,16 +263,16 @@ void SymTable::print(ostream* out, int level)
     if(it2 != _children.end())
     {
       it2->second->print(out, level + 1);
-      delete it2->second;
-      _children.erase(it2);
+//       delete it2->second;
+//       _children.erase(it2);
     }    
   }
   //print the rest of the children of this scope
   
-  for(auto it2 = _children.begin(); it2!= _children.end(); it2++)
-  {
-    it2->second->print(out, level + 1);
-  }
+//   for(auto it2 = _children.begin(); it2!= _children.end(); it2++)
+//   {
+//     it2->second->print(out, level + 1);
+//   }
 }
 
 /******************************************************************************/
