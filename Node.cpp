@@ -129,7 +129,7 @@ Type* SymTable::lookup(string className, string identifier)
   
   if(!this->classLookup(className))
   {
-    cerr << "Type Error: " << "Class Name " << className << " Does Not exist"  
+    cerr << "Type Error: " << "Class Name \"" << className << "\" Does Not exist"  
     << endl;
     return 0;
   }
@@ -139,7 +139,7 @@ Type* SymTable::lookup(string className, string identifier)
   const SymTable* classTable = rootTable->lookupChild(className);
   if(classTable == 0)
   {
-    cerr << "Type Error: " << "Class Name " << className << " Does Not exist"  
+    cerr << "Type Error: " << "Class Name \"" << className << "\" Does Not exist"  
     << endl;
     return 0;
   }
@@ -147,8 +147,8 @@ Type* SymTable::lookup(string className, string identifier)
   Type* idType = classTable->lookup(identifier);
   if(idType == 0)
   {
-    cerr << "Type Error: " << "Identfier " << identifier 
-    << " Does Not exist within " << className   
+    cerr << "Type Error: " << "Identfier \"" << identifier 
+    << "\" Not Declared within " << className   
     << endl;
     return 0;
   }
@@ -298,6 +298,8 @@ void Node:: setLineNumber(int linenum) { _lineNumber = linenum;}
 
 bool Node::typeCheck(SymTable* table) {return true;}
 
+int Node::getLineNumber(){return _lineNumber;}
+
 /******************************************************************************/
 
 ClassDec::ClassDec(string value, Node* node1):Node(value, "ClassDec")
@@ -314,7 +316,7 @@ void ClassDec::buildTable(SymTable* table)
   ret = table->insert(_value, mytype);
   if(ret == -1)
   {
-    cerr << "Type Error: Class " << _value << " Declared Twice" 
+    cerr << "Type Error: Class \"" << _value << "\" Declared Twice" 
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -325,7 +327,7 @@ void ClassDec::buildTable(SymTable* table)
   if(ret == -1)
   {
     //should never happen
-    cerr << "Type Error: Class " << _value << " Declared Twice" 
+    cerr << "Type Error: Class \"" << _value << "\" Declared Twice" 
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -1151,7 +1153,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
         ret = table->lookup(_value);
         if(ret == 0)
         {
-          cerr << "Type Error: "  << _value << " Unrecognized Identfier" 
+          cerr << "Type Error: \""  << _value << "\" Unrecognized Identfier" 
           << " Line " << _lineNumber << endl;
         }
       }
@@ -1160,7 +1162,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
         ret = table->lookup(mangledName);
         if(ret == 0)
         {
-          cerr << "Type Error: "  << _value << " No Matching Function Definition" 
+          cerr << "Type Error: \""  << _value << "\" No Matching Function Declaration" 
           << " Line " << _lineNumber << endl;
         }
       }
@@ -1176,7 +1178,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       
       if(nameType->getlval() == "")
       {
-        cerr << "Type Error: "  << _value << " Invalid L value" 
+        cerr << "Type Error: \""  << _value << "\" Invalid L value" 
         << " Line " << _lineNumber << endl;
         return 0;
       }
@@ -1602,7 +1604,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //check to see if type even exists
       if(!table->classLookup(_value))
       {
-        cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+        cerr << "Type Error: "  << "Type \"" << _value << "\" Not Declared"
         << " Line " << _lineNumber << endl;
         return 0;
       }
@@ -1652,7 +1654,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          cerr << "Type Error: "  << "Type \"" << _value << "\" Not Declared"
           << " Line " << _lineNumber << endl;
           return 0;
         }
@@ -1682,7 +1684,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          cerr << "Type Error: "  << "Type \"" << _value << "\" Does not Exist"
           << " Line " << _lineNumber << endl;
           return 0;
         }
@@ -1706,7 +1708,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
         // check to see if type exists
         if(!table->classLookup(_value))
         {
-          cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+          cerr << "Type Error: "  << "Type \"" << _value << "\" Does not Exist"
           << " Line " << _lineNumber << endl;
           return 0;
         }
@@ -1738,7 +1740,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //check to see if type even exists
       if(!table->classLookup(_value))
       {
-        cerr << "Type Error: "  << "Type " << _value << " Does not Exist"
+        cerr << "Type Error: "  << "Type \"" << _value << "\" Does not Exist"
         << " Line " << _lineNumber << endl;
         return 0;
       }
@@ -1839,7 +1841,7 @@ void ConstructorDec::buildTable(SymTable* table)
   
   if(table->getValue() != _value)
   {
-    cerr << "Type Error: "  << "Constructor " << _value << " Not equal to Class Name \""
+    cerr << "Type Error: "  << "Constructor \"" << _value << "\" Differs from Class Name \""
     << table->getValue() << "\" Line " << _lineNumber << endl;
     return;
   }
@@ -1865,7 +1867,7 @@ void ConstructorDec::buildTable(SymTable* table)
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
-    cerr << "Type Error: "  << "Constructor " << _value << " Declared Twice"
+    cerr << "Type Error: "  << "Constructor \"" << _value << "\" Declared Twice"
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -1875,7 +1877,7 @@ void ConstructorDec::buildTable(SymTable* table)
   if(ret == -1)
   {
     //shouldn't get this error because the first one should stop it
-    cerr << "Type Error: "  << "Constructor " << _value << " Declared Twice"
+    cerr << "Type Error: "  << "Constructor \"" << _value << "\" Declared Twice"
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -1888,7 +1890,7 @@ void ConstructorDec::buildTable(SymTable* table)
       ret = myTable->insert(paramNames->at(i), paramType);
       if(ret == -1)
       {
-        cerr << "Type Error: Local variable " << paramNames->at(i) <<  " declared twice" 
+        cerr << "Type Error: Local variable \"" << paramNames->at(i) <<  "\" declared twice" 
         << " Line " << _lineNumber << endl;
         return;
       }
@@ -2073,7 +2075,7 @@ void MethodDec::buildTable(SymTable* table)
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
-    cerr << "Type Error: "  << "Method " << _value << " Declared Twice"
+    cerr << "Type Error: "  << "Method \"" << _value << "\" Declared Twice"
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -2083,7 +2085,7 @@ void MethodDec::buildTable(SymTable* table)
   ret = table->addChild(myTable);
   if(ret == -1)
   {
-    cerr << "Type Error: "  << "Method " << _value << " Declared Twice"
+    cerr << "Type Error: "  << "Method \"" << _value << "\" Declared Twice"
     << " Line " << _lineNumber << endl;
     return;
   }
@@ -2097,7 +2099,7 @@ void MethodDec::buildTable(SymTable* table)
       ret = myTable->insert(paramNames->at(i), paramType);
       if(ret == -1)
       {
-        cerr << "Type Error: Local variable " << paramNames->at(i) <<  " declared twice" 
+        cerr << "Type Error: Local variable \"" << paramNames->at(i) <<  "\" declared twice" 
         << " Line " << _lineNumber << endl;
         return;
       }
@@ -2159,7 +2161,7 @@ bool MethodDec::typeCheck(SymTable* table)
     {
       if(!table->classLookup(type))
       {
-        cerr << "Type Error: Invalid Type " << type 
+        cerr << "Type Error: Invalid Type \"" << type << "\""
         << " Line " << _lineNumber << endl;
         return false;
       }
@@ -2183,7 +2185,7 @@ bool MethodDec::typeCheck(SymTable* table)
       {
         if(!table->classLookup(type))
         {
-          cerr << "Type Error: Invalid Type " << type 
+          cerr << "Type Error: Invalid Type \"" << type << "\"" 
           << " Line " << _lineNumber << endl;
           return false;
         }
@@ -2258,7 +2260,7 @@ void VarDec::buildTable(SymTable* table)
   ret = table->insert(_value, mytype);
   if(ret == -1) 
   {
-    cerr << "Type Error: local variable " << _value <<  " declared twice" 
+    cerr << "Type Error: local variable \"" << _value <<  "\" declared twice" 
     << " Line " << _lineNumber << endl;
     return;
   }

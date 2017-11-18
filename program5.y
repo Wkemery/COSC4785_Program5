@@ -107,32 +107,39 @@ input:  %empty
 
 classdec: CLASS IDENTIFIER classbody {
                 $$ = new ClassDec($2->value, $3);
+                $$->setLineNumber($1->line);
                 delete $1; delete $2;
                 }
 ;
 
 classbody:  LBRACE RBRACE {
                   $$ = new ClassBody(CLASSBODYEMPTY);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2;
                   }
             | LBRACE vardecr RBRACE{
                   $$ = new ClassBody($2, CLASSBODYVAR);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $3;
                   }
             | LBRACE vardecr constructordecr RBRACE{
                   $$ = new ClassBody($2, $3, CLASSBODYVARCON);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $4;
                   }
             | LBRACE vardecr constructordecr methoddecr RBRACE{
-              $$ = new ClassBody($2, $3, $4, CLASSBODYVARCONMET);
+                  $$ = new ClassBody($2, $3, $4, CLASSBODYVARCONMET);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $5;
                   }
             | LBRACE constructordecr methoddecr RBRACE{
                   $$ = new ClassBody($2, $3, CLASSBODYCONMET);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $4;
                   }
             | LBRACE constructordecr RBRACE{
                   $$ = new ClassBody($2, CLASSBODYCON);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $3;
             }
             | LBRACE constructordecr error{
@@ -144,16 +151,19 @@ classbody:  LBRACE RBRACE {
             }
             | LBRACE methoddecr RBRACE{
                   $$ = new ClassBody($2, CLASSBODYMET);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $3;
                   }
             | LBRACE vardecr methoddecr RBRACE{
                   $$ = new ClassBody($2, $3, CLASSBODYVARMET);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $4;
             }
 ;
 
 vardecr: vardec { 
               $$ = new RNode(RECVARDEC);
+              $$->setLineNumber($1->getLineNumber());
               ((RNode*)$$)->add($1);
 }
           | vardecr vardec {
@@ -173,6 +183,7 @@ vardecr: vardec {
 
 constructordecr: constructordec { 
                         $$ = new RNode(RECCONDEC);
+                        $$->setLineNumber($1->getLineNumber());
                         ((RNode*)$$)->add($1);
                         }
                   | constructordecr constructordec {
@@ -192,6 +203,7 @@ constructordecr: constructordec {
 
 methoddecr: methoddec { 
                   $$ = new RNode(RECMETDEC);
+                  $$->setLineNumber($1->getLineNumber());
                   ((RNode*)$$)->add($1);
                   }
             | methoddecr methoddec {
@@ -211,41 +223,51 @@ methoddecr: methoddec {
 
 statement: name ASSIGNOP expression SEMICO {
                 $$ = new Statement($1, $3, STMNTNAMEEXP);
+                $$->setLineNumber($1->getLineNumber());
                 delete $2; delete $4;
                 }
             | name LPAREN arglist RPAREN SEMICO {
                   $$ = new Statement($1, $3, STMNTNAMEARGL);
+                  $$->setLineNumber($1->getLineNumber());
                   delete $2; delete $4; delete $5;
                   }
             | name LPAREN RPAREN SEMICO {
                     $$ = new Statement($1,STMNTNAMEEMPTY);
+                    $$->setLineNumber($1->getLineNumber());
                     delete $2; delete $3, delete $4;
                   }
             | PRINT LPAREN arglist RPAREN SEMICO {
                   $$ = new Statement($3, STMNTPRNTARGL);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2; delete $4; delete $5;
                   }
             | WHILE LPAREN expression RPAREN statement {
                   $$ = new Statement($3, $5, STMNTWHILE);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2; delete $4;
                   }
             | RETURN expression SEMICO{
                   $$ = new Statement($2, SMTNTRETURN);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $3;
                   }
             | RETURN SEMICO {
                   $$ = new Statement(SMTNTRETURN);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2;
                   }
             | SEMICO {
                   $$ = new Statement(STMNTSEMI);
+                  $$->setLineNumber($1->line);
                   delete $1;
                   }
             | conditionalstatement {
                   $$ = new Statement($1, STMNTCOND);
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | block {
                   $$ = new Statement($1, STMNTBLOCK);
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | name ASSIGNOP expression error {
                   $$ = new ErrNode();
@@ -266,18 +288,22 @@ statement: name ASSIGNOP expression SEMICO {
 
 block:  LBRACE RBRACE{
               $$ = new Block(BLOCKEMPTY);
+              $$->setLineNumber($1->line);
               delete $1; delete $2;
               }
         | LBRACE vardecr RBRACE {
               $$ = new Block($2, BLOCKVARDEC);
+              $$->setLineNumber($1->line);
               delete $1; delete $3;
               }
         | LBRACE vardecr statementr RBRACE{
               $$ = new Block($2, $3, BLOCKVARSTMNT);
+              $$->setLineNumber($1->line);
               delete $1; delete $4;
               }
         | LBRACE statementr RBRACE {
               $$ = new Block($2, BLOCKSTMNT);
+              $$->setLineNumber($1->line);
               delete $1; delete $3;
               }
         | LBRACE error {
@@ -292,6 +318,7 @@ block:  LBRACE RBRACE{
 
 statementr: statement { 
                   $$ = new RNode(RECSTMNT);
+                  $$->setLineNumber($1->getLineNumber());
                   ((RNode*)$$)->add($1);
                   }
             | statementr statement {
@@ -310,7 +337,13 @@ statementr: statement {
 
 conditionalstatement: IF LPAREN expression RPAREN statement %prec IFEL{
                             $$ = new CondStatement($3, $5, CONDSTMNT);
+                            $$->setLineNumber($1->line);
                             delete $1; delete $2; delete $4;
+                            }                      
+                      | IF LPAREN expression RPAREN statement ELSE statement {
+                            $$ = new CondStatement($3, $5, $7, CONDSTMNTELSE);
+                            $$->setLineNumber($1->line);
+                            delete $1; delete $2; delete $4; delete $6;
                             }
                       | IF LPAREN expression error statement %prec IFEL{
                             $$ = new ErrNode();
@@ -320,17 +353,16 @@ conditionalstatement: IF LPAREN expression RPAREN statement %prec IFEL{
                             yyerrok;
                             delete $1; delete $2; delete $3; delete $5;
                             }
-                      | IF LPAREN expression RPAREN statement ELSE statement {
-                            $$ = new CondStatement($3, $5, $7, CONDSTMNTELSE);
-                            delete $1; delete $2; delete $4; delete $6;
-                            }
+
 ;
 constructordec: IDENTIFIER LPAREN paramlist RPAREN block {
                       $$ = new ConstructorDec($1->value, $3, $5, CONSTDEC);
+                      $$->setLineNumber($1->line);
                       delete $1; delete $2; delete $4;
                       }
                 | IDENTIFIER LPAREN RPAREN block {
                       $$ = new ConstructorDec($1->value, $4, CONSTDECEMPTY);
+                      $$->setLineNumber($1->line);
                       delete $1; delete $2; delete $3;
                       }
                 | IDENTIFIER LPAREN paramlist RPAREN error {
@@ -351,19 +383,23 @@ constructordec: IDENTIFIER LPAREN paramlist RPAREN block {
 
 methoddec: type IDENTIFIER LPAREN paramlist RPAREN block {
                 $$ = new MethodDec($1, $2->value, $4, $6, METHODDECTYPE);
+                $$->setLineNumber($1->getLineNumber());
                 delete $2; delete $3; delete $5;
                 }
           | type IDENTIFIER LPAREN RPAREN block {
                 $$ = new MethodDec($1, $2->value, $5, METHODDECTYPEEMPTY);
+                $$->setLineNumber($1->getLineNumber());
                 delete $2; delete $3; delete $4;
                 }
           | VOID IDENTIFIER LPAREN paramlist RPAREN block {
                 $$ = new MethodDec($2->value, $4, $6, METHODDECVOID);
+                $$->setLineNumber($1->line);
                 delete $1; delete $2; delete $3; delete $5;
             
                 }
           | VOID IDENTIFIER LPAREN RPAREN block {
                 $$ = new MethodDec($2->value, $5, METHODDECVOIDEMPTY);
+                $$->setLineNumber($1->line);
                 delete $1; delete $2; delete $3; delete $4;
                 }
           | type IDENTIFIER LPAREN paramlist RPAREN error {
@@ -401,6 +437,7 @@ methoddec: type IDENTIFIER LPAREN paramlist RPAREN block {
 
 paramlist: param { 
                   $$ = new RNode(RECPARAM);
+                  $$->setLineNumber($1->getLineNumber());
                   ((RNode*)$$)->add($1);
                   }                 
             | paramlist COMMA param {
@@ -412,11 +449,13 @@ paramlist: param {
 
 param: type IDENTIFIER {
             $$ = new Param($1, $2->value);
+            $$->setLineNumber($1->getLineNumber());
             delete $2;
             }
 ;
 vardec: type IDENTIFIER SEMICO {
               $$ = new VarDec($1, $2->value);
+              $$->setLineNumber($1->getLineNumber());
               delete $2; delete $3;
               }
         | type IDENTIFIER error {
@@ -436,14 +475,17 @@ vardec: type IDENTIFIER SEMICO {
 ;
 expression: NUM { 
                   $$ = new Expression($1->value, EXPNUM);
+                  $$->setLineNumber($1->line);
                   delete $1;
                   }
             | NULLKEYWORD { 
-                  $$ = new Expression("null", EXPNULL); 
+                  $$ = new Expression("null", EXPNULL);
+                  $$->setLineNumber($1->line);
                   delete $1;
                   }
             | READ LPAREN RPAREN { 
                   $$ = new Expression("read", EXPREAD); 
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2; delete $3;
                   }
             | READ LPAREN error  {
@@ -455,6 +497,7 @@ expression: NUM {
                   }
             | unaryop expression %prec NEG { 
                   $$ = new Expression($1, $2, EXPUNARY); 
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | unaryop error %prec NEG { 
                   $$ = new ErrNode();
@@ -465,7 +508,8 @@ expression: NUM {
                   yyerrok;
                   }
             | expression relationop expression %prec RE{ 
-                  $$ = new Expression($1, $2, $3, EXPRELATION);  
+                  $$ = new Expression($1, $2, $3, EXPRELATION);
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | expression relationop error %prec RE{ 
                   $$ = new ErrNode();
@@ -477,7 +521,8 @@ expression: NUM {
                   
                   }
             | expression productop expression %prec PRO{
-                    $$ = new Expression($1, $2, $3, EXPPRODUCT); 
+                    $$ = new Expression($1, $2, $3, EXPPRODUCT);
+                    $$->setLineNumber($1->getLineNumber());
                   }
             | expression productop error %prec RE{ 
                   $$ = new ErrNode();
@@ -489,6 +534,7 @@ expression: NUM {
                   }
             | expression sumop expression %prec BIN {
                   $$ = new Expression($1, $2, $3, EXPSUMOP); 
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | expression sumop error %prec RE{ 
                   $$ = new ErrNode();
@@ -500,6 +546,7 @@ expression: NUM {
                   }
             | LPAREN expression RPAREN { 
                   $$ = new Expression($2, EXPPAREN);
+                  $$->setLineNumber($1->line);
                   delete $1; delete $3;
             }
             | LPAREN expression error { 
@@ -510,15 +557,22 @@ expression: NUM {
                   delete $1; delete $2;
                   yyerrok;
                   }
-            | newexpression { $$ = new Expression($1, EXPNEW); }
-            | name %prec NAME{$$ = new Expression($1, EXPNAME);
+            | newexpression { 
+                  $$ = new Expression($1, EXPNEW); 
+                  $$->setLineNumber($1->getLineNumber());
+                  }
+            | name %prec NAME{
+                  $$ = new Expression($1, EXPNAME);
+                  $$->setLineNumber($1->getLineNumber());
                   }
             | name LPAREN arglist RPAREN {
                   $$ = new Expression($1, $3, EXPNAMEARG);
+                  $$->setLineNumber($1->getLineNumber());
                   delete $2; delete $4;
                   }
             | name LPAREN RPAREN {
                     $$ = new Expression($1, EXPNAMEEMPTY);
+                    $$->setLineNumber($1->getLineNumber());
                     delete $2; delete $3;
                   }
             | name LPAREN error RPAREN {
@@ -539,15 +593,18 @@ expression: NUM {
                   }            
 ;
 name: THIS { 
-            $$ = new Name("this", NAMETHIS); 
+            $$ = new Name("this", NAMETHIS);
+            $$->setLineNumber($1->line);
             delete $1;
             }
       | IDENTIFIER %prec NAME { 
             $$ = new Name($1->value, NAMEID);
+            $$->setLineNumber($1->line);
             delete $1;
             }
       | name DOTOP IDENTIFIER { 
             $$ = new Name($1, $3->value, NAMEDOTID);
+            $$->setLineNumber($1->getLineNumber());
             delete $2; delete $3;
             }
       | name DOTOP error{
@@ -568,10 +625,12 @@ name: THIS {
             }
       | name LBRACK expression RBRACK { 
             $$ = new Name($1, $3, NAMEEXP);
+            $$->setLineNumber($1->getLineNumber());
             delete $2; delete $4;
             }
       | IDENTIFIER LBRACK expression RBRACK{
             $$ = new Name($3, $1->value, NAMEIDEXP);
+            $$->setLineNumber($1->line);
             delete $1; delete $2; delete $4;
             }
       | IDENTIFIER LBRACK expression error{
@@ -591,10 +650,12 @@ name: THIS {
 ;
 newexpression: NEW IDENTIFIER LPAREN arglist RPAREN {
                     $$ = new NewExpression($2->value, $4, NEWEXPARG);
+                    $$->setLineNumber($1->line);
                     delete $1; delete $2; delete $3; delete $5;
                     }
               | NEW IDENTIFIER LPAREN RPAREN { 
                     $$ = new NewExpression($2->value, NEWEXPPAREN);
+                    $$->setLineNumber($1->line);
                     delete $1; delete $2; delete $3; delete $4;
                     }
               | NEW IDENTIFIER LPAREN error { 
@@ -617,14 +678,17 @@ newexpression: NEW IDENTIFIER LPAREN arglist RPAREN {
                     }*/
               | NEW IDENTIFIER brackexpression {
                     $$ = new NewExpression($2->value, $3, NEWEXPBRACK);
+                    $$->setLineNumber($1->line);
                     delete $1; delete $2;
               }
               | NEW IDENTIFIER multibracks {
                 $$ = new NewExpression($2->value, $3, NEWEXPMULTI);
+                $$->setLineNumber($1->line);
                 delete $1; delete $2;
               }
               | NEW IDENTIFIER brackexpression multibracks {
                     $$ = new NewExpression($2->value, $3, $4, NEWEXPBRACKMULTI);
+                    $$->setLineNumber($1->line);
                     delete $1; delete $2;
               }
 /*              | NEW INT {
@@ -633,27 +697,31 @@ newexpression: NEW IDENTIFIER LPAREN arglist RPAREN {
               }*/
               | NEW INT brackexpression {
                     $$ =  new NewExpression($3,NEWEXPBRACK);
+                    $$->setLineNumber($1->line);
                     delete $1; delete $2;
               }
               | NEW INT brackexpression multibracks {
-                $$ =  new NewExpression($3, $4, NEWEXPBRACKMULTI);
-                delete $1; delete $2;
+                    $$ =  new NewExpression($3, $4, NEWEXPBRACKMULTI);
+                    $$->setLineNumber($1->line);
+                    delete $1; delete $2;
               }
               | NEW INT multibracks {
-                $$ = new NewExpression($3, NEWEXPMULTI);
-                delete $1; delete $2;
+                    $$ = new NewExpression($3, NEWEXPMULTI);
+                    $$->setLineNumber($1->line);
+                    delete $1; delete $2;
               }
               | NEW error{ 
-                  $$ = new ErrNode();
-                  cerr << "After 'new' at " << $1->line << ":" 
-                  << $1->column + 3 << endl << endl;
-                  yyerrok;
-                  delete $1;
-}
+                    $$ = new ErrNode();
+                    cerr << "After 'new' at " << $1->line << ":" 
+                    << $1->column + 3 << endl << endl;
+                    yyerrok;
+                    delete $1;
+              }
                   
 ;
 brackexpression: LBRACK expression RBRACK { 
                         $$ = new RNode(RECBRACKEXP);
+                        $$->setLineNumber($1->line);
                         ((RNode*)$$)->add($2);
                         delete $1; delete $3;
                         }                 
@@ -682,6 +750,7 @@ brackexpression: LBRACK expression RBRACK {
 
 arglist: expression { 
                   $$ = new RNode(RECARG);
+                  $$->setLineNumber($1->getLineNumber());
                   ((RNode*)$$)->add($1);
                   }                 
          | arglist COMMA expression {
@@ -690,9 +759,9 @@ arglist: expression {
                   delete $2;
                   }
 ;
-unaryop:  PLUS {$$ = new UnaryOp("+"); delete $1;}
-| MINUS {$$ = new UnaryOp("-"); delete $1;}
-| NOT {$$ = new UnaryOp("!"); delete $1;}
+unaryop:  PLUS {$$ = new UnaryOp("+"); $$->setLineNumber($1->line); delete $1;}
+| MINUS {$$ = new UnaryOp("-"); $$->setLineNumber($1->line); delete $1;}
+| NOT {$$ = new UnaryOp("!"); $$->setLineNumber($1->line); delete $1;}
 
 ;
 
@@ -716,18 +785,22 @@ sumop:  MINUS {$$ = new SumOp("-"); delete $1;}
 
 type: INT {
             $$ = new TypeNode("int", TYPE);
+            $$->setLineNumber($1->line);
             delete $1;
             }
       | IDENTIFIER {
             $$ = new TypeNode($1->value, TYPE);
+            $$->setLineNumber($1->line);
             delete $1;
             }
       | INT multibracks {
             $$ = new TypeNode("int", $2, TYPEBRACKS);
+            $$->setLineNumber($1->line);
             delete $1;
             }
       | IDENTIFIER multibracks {
             $$ = new TypeNode($1->value, $2, TYPEBRACKS);
+            $$->setLineNumber($1->line);
             delete $1;
             }
 ;
@@ -735,6 +808,7 @@ type: INT {
 multibracks: LBRACK RBRACK { 
                   $$ = new Multibracks();
                   ((Multibracks*)$$)->add();
+                  $$->setLineNumber($1->line);
                   delete $1; delete $2;
                   }                 
             | multibracks LBRACK RBRACK {

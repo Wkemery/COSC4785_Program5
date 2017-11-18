@@ -156,6 +156,7 @@ public:
   virtual Type* getTypeCheck(SymTable* table);
   virtual bool typeCheck(SymTable* table);
   void setLineNumber(int linenum);
+  int getLineNumber();
   void setErr();
   bool getErr();
 };

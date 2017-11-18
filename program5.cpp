@@ -30,14 +30,13 @@ int main()
 //     if(forest[i] != 0) forest[i]->print(&cout);
     if(forest[i] != 0) forest[i]->buildTable(symbolTable);
   }
-  
+    
   for(unsigned int i = 0; i < forest.size(); i++)
   {
     //do typecheck here. 
-    bool ret = true;
-    if(forest[i] != 0) ret = forest[i]->typeCheck(symbolTable);
-    if(!ret) cerr << "Error occured!" << endl;
+    if(forest[i] != 0) forest[i]->typeCheck(symbolTable);
   }
+  
   
   symbolTable->print(&cout, 0);
   

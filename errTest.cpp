@@ -20,7 +20,7 @@ class ClassA
   
   void method1()
   {
-//     myint1 = new int;//syntax error
+// //     myint1 = new int;//syntax error
 //     method1 = myint1; //error unrecognized identifier method1
 //     myint1 = method1; //error unrecognized identifier method1
 //     myClassA1 = myint1; //error type mismatch
@@ -32,7 +32,7 @@ class ClassA
 //     myClassB1.x = 5;//error class b does not have a member named x
 //     myintarr1 = new int[myClassA1];//error [doesnt evaluate to int]
 //     myintarr1 = new int[new int[]];//error [doesnt evaluate to int]
-//     myintarr1[new int] = 5;//syntax error [doesnt evaluate to int]
+// //     myintarr1[new int] = 5;//syntax error [doesnt evaluate to int]
 //     myintarr1[new ClassA()] = 5; //error [doesnt evaluate to int]
 //     myintarr1[myClassA1] = 5;//error [doesnt evaluate to int]
 //     myint1 = myint2 + myClassA1;//errro expressions different types
