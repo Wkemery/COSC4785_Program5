@@ -353,6 +353,14 @@ conditionalstatement: IF LPAREN expression RPAREN statement %prec IFEL{
                             yyerrok;
                             delete $1; delete $2; delete $3; delete $5;
                             }
+                      | IF LPAREN expression RPAREN error %prec IFEL{
+                            $$ = new ErrNode();
+                            cerr << "Expected statement after"
+                            << " conditional statement around " << $4->line << ":" 
+                            << $4->column << endl << endl;
+                            yyerrok;
+                            delete $1; delete $2; delete $3; delete $4;
+                            }
 
 ;
 constructordec: IDENTIFIER LPAREN paramlist RPAREN block {

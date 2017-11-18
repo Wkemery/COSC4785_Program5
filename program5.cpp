@@ -19,6 +19,8 @@ using namespace std;
 
 yyFlexLexer scanner;
 vector<Node*> forest;
+vector<Type*> extraTypes;
+
 int main()
 {
   
@@ -41,6 +43,10 @@ int main()
   symbolTable->print(&cout, 0);
   
   delete symbolTable;
+  for(unsigned int i = 0; i < extraTypes.size(); i++)
+  {
+    delete extraTypes[i];
+  }
   
   for(unsigned int i = 0; i < forest.size(); i++)
   {

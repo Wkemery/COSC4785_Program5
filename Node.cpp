@@ -12,11 +12,19 @@ using namespace std;
 #include"Node.h"
 #include<cstdlib>
 
+
+//TODO: set initial values
+//TODO: note i do  allow adding of null
+
 bool PDebug = false; //prints leaves on true
 bool EasyReading = false; /* on true, adds extra new lines for easy reading of 
 output*/
-Type numLiteralType("", "int", 0, "");
-Type nullType("", "NULL", 0, "");
+
+extern vector<Type*> extraTypes;
+
+Type numLiteralType("", "int", 0, "", false);
+Type nullType("", "null", 0, "", false);
+Type boolType("", "bool", 0, "", false);
 
 string nameMangle(string funcName, vector<string>* funcParamTypes)
 {
@@ -43,9 +51,14 @@ string nameUnMangle(string mangledName)
 }
 /******************************************************************************/
 
-Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, string classType = "")
+Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, string classType = "", bool deleteME = false)
 :_lval(lval), _rval(rval), _parameters(parameters), _classType(classType)
-{}
+{
+  if (deleteME)
+  {
+    extraTypes.push_back(this);
+  }
+}
 
 Type::~Type()
 {
@@ -583,12 +596,28 @@ bool Statement::typeCheck(SymTable* table)
         return false;
       }
       
-      if(nameType->getlval() != expType->getrval())
+      if(nameType->getlval() == "int")
       {
-        cerr << "Type Error: "  << "Type Mismatch" 
-        << " Line " << _lineNumber << endl;
-        return false;
+        if(expType->getrval() != "int")
+        {
+          cerr << "Type Error: "  << "Type Mismatch" 
+          << " Line " << _lineNumber << endl;
+          return false;
+        }
       }
+      else
+      {
+        //Know lval is a class type so null is always valid
+        if(expType->getrval() == "null") return true;
+        
+        if(nameType->getlval() != expType->getrval())
+        {
+          cerr << "Type Error: "  << "Type Mismatch" 
+          << " Line " << _lineNumber << endl;
+          return false;
+        }
+      }
+
       break;
     }
     case STMNTNAMEARGL:
@@ -653,7 +682,6 @@ bool Statement::typeCheck(SymTable* table)
       if(_subNodes.size() == 0)
       {
         expType =  new Type("", "void");
-        //TODO: memory leak here
       }
       else
       {
@@ -926,8 +954,7 @@ Type* RNode::getTypeCheck(SymTable* table)
     {
       argTypes->push_back(_subNodes[i]->getTypeCheck(table)->getrval());
     }
-    return new Type("","",argTypes);
-    //TODO: memory leak here
+    return new Type("","",argTypes, "", true);
   }
   if(_kind == RECBRACKEXP)
   {
@@ -948,8 +975,7 @@ Type* RNode::getTypeCheck(SymTable* table)
       }
       type.append("[]");
     }
-    return new Type("", type);
-    //TODO: memory leak here
+    return new Type("", type, 0, "", true);
   }
   return 0;
 }
@@ -1059,7 +1085,7 @@ bool CondStatement::typeCheck(SymTable* table)
   Type* expType = _subNodes[0]->getTypeCheck(table);
   if(expType == 0) return false;
   
-  if(expType->getrval() != "int")
+  if((expType->getrval() != "bool") && (expType->getrval() != "int"))
   {
     cerr << "Type Error: "  << "Expression Does Not Evaluate to Boolean" 
     << " Line " << _lineNumber << endl;
@@ -1213,8 +1239,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       type = type.substr(0, arrayPos);
       
       //the type of name[expression] is the type of name minus the brackets
-      return new Type(type, type);
-      //TODO: memory leak caused here
+      return new Type(type, type, 0, "", true);
       
     }
     case NAMEIDEXP:
@@ -1245,8 +1270,7 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
       type = type.substr(0, arrayPos);
       
       //the type of id[expression] is the type of id minus the brackets
-      return new Type(type, type);
-      //TODO: memory leak caused here
+      return new Type(type, type, 0, "", true);
     }
   }
   
@@ -1360,6 +1384,49 @@ Type* Expression::getTypeCheck(SymTable* table)
       return expType;
     }
     case EXPRELATION:
+    {
+      Type* expType1 = _subNodes[0]->getTypeCheck(table);
+      if(expType1 == 0) return 0;
+      
+      Type* expType2 = _subNodes[2]->getTypeCheck(table);
+      
+      if(expType2 == 0) return 0;
+      
+      if(expType1->getrval() == "int")
+      {
+        //bool is always valid
+//         if(expType2->getrval() == "bool") return &numLiteralType; 
+        if(expType2->getrval() != "int")
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+      }
+      else if(expType1->getrval() == "null")
+      {
+        if(expType2->getrval() == "int")
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+      }
+      else
+      {
+        //Know exptype1 is a class type so null is always valid
+        if(expType2->getrval() == "null") return &numLiteralType;
+        
+        if(expType1->getrval() != expType2->getrval())
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+      }
+      
+      return &numLiteralType;
+    }
     case EXPPRODUCT:
     case EXPSUMOP:
     {
@@ -1369,15 +1436,41 @@ Type* Expression::getTypeCheck(SymTable* table)
       Type* expType2 = _subNodes[2]->getTypeCheck(table);
       
       if(expType2 == 0) return 0;
+
       
-      if(expType1->getrval() != expType2->getrval())
+      if(expType1->getrval() == "int")
       {
-        cerr << "Type Error: "  << "Expressions must be of the same type" 
-        << " Line " << _lineNumber << endl;
-        return 0;
+        if(expType2->getrval() != "int")
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+        return expType1;
       }
-      
-      return expType1;
+      else if(expType1->getrval() == "null")
+      {
+        if(expType2->getrval() == "int")
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+        return expType2;
+      }
+      else
+      {
+        //Know exptype1 is a class type so null is always valid
+        if(expType2->getrval() == "null") return expType1;
+        
+        if(expType1->getrval() != expType2->getrval())
+        {
+          cerr << "Type Error: "  << "Expressions must be of the same type" 
+          << " Line " << _lineNumber << endl;
+          return 0;
+        }
+        return expType1;
+      }      
     }
     case EXPPAREN:
     {
@@ -1666,8 +1759,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //add on all []s
       type.append(expBrackType->getrval());
       
-      return new Type("", type);
-      //TODO: memory leak caused here
+      return new Type("", type, 0, "", true);
     }
     case NEWEXPBRACKMULTI:
     {
@@ -1695,8 +1787,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       type.append(expBrackType->getrval());
       type.append(multibracksType);
 
-      return new Type("", type);
-      //TODO: memory leak caused here
+      return new Type("", type, 0, "", true);
     }
     case NEWEXPMULTI:
     {
@@ -1718,8 +1809,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       string type = _value;
       type.append(multibracksType);
       
-      return new Type("", type);
-      //TODO: memory leak caused here
+      return new Type("", type, 0, "", true);
     }
 //     case NEWEXPEMPTY:
 //     {

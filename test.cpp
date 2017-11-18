@@ -17,7 +17,8 @@ class ClassB
 
 class ClassC
 {
-  ClassA x;
+  ClassA myClassA1;
+  int myint1;
   ClassC(){}
   ClassC(int x){}
   void meth()
@@ -50,13 +51,22 @@ class ClassC
     objArray = new ClassA[a][];//correct
     objArray = new ClassA[5][];//correct
 //     objArray = new ClassA[a][myCobject];//error
-    objArray = new ClassA[a][x.bs.z];//correct
+//     objArray = new ClassA[a][x.bs.z];//correct
 //     objArray = new ClassA[a][x.y.z];//error
-    objArray = new ClassA[a][x.y[0].z];//correct
+//     objArray = new ClassA[a][x.y[0].z];//correct
     
+    myClassA1 = null;
+    myClassA1 = myClassA1 + null;
+    myClassA1 = null + myClassA1;
+    myClassA1 = null + null;
+    if(method2()){}
+    if(null == null){}
+    if((myClassA1 == null) && (myint1 == 0)){}
     
 //     objArray = new ClassA[myCobject][];//Error
     
   }
+  
+  int method2(){}
   
 }

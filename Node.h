@@ -103,7 +103,7 @@ private:
   vector<string>* _parameters;
   string _classType;
 public:
-  Type(string lval, string rval, vector<string>* parameters, string classType);
+  Type(string lval, string rval, vector<string>* parameters, string classType, bool deleteME);
   ~Type();
   string getlval(void) const;
   string getrval(void) const;

@@ -20,6 +20,11 @@ class ClassA
   
   void method1()
   {
+//     myint1 = null; //error type mismatch
+//     if(myint1 == null){}//error type mismatch
+//     if(myint1 + null){} //error type mismatch
+//     if(myClassA1 + null){} //error type does not evaluate to boolean
+    if((myClassA1 == null) && (myint1 == null)){}//error expressions not of same tyupe
 // //     myint1 = new int;//syntax error
 //     method1 = myint1; //error unrecognized identifier method1
 //     myint1 = method1; //error unrecognized identifier method1
