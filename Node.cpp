@@ -219,12 +219,14 @@ int SymTable::insert(string identifier, Type* type)
 
 string SymTable::getValue(void) const {return _value;}
 
+SymTable* SymTable::getParent() { return _parent;}
+
 Type* SymTable::getClassType() const
 {
   //rely on the fact that you are at a class type when the next node is root.
-  if(_parent == 0)
+  if(_parent->getParent() == 0)
   {
-    return this->lookup(_value);
+    return _parent->lookup(_value);
   }
   else
   {
@@ -629,7 +631,12 @@ bool Statement::typeCheck(SymTable* table)
       if(argsType == 0) return false;
       
       //get type of function name from symbol table
-      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), argsType->getParams());
+      string funcName = ((Name*)_subNodes[0])->getFuncName();
+      if(funcName == "this")
+      {
+        funcName = _myTable->getClassType()->getClassType();
+      }
+      string mangledFuncName = nameMangle(funcName, argsType->getParams());
       Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, mangledFuncName);
       if(funcType == 0) return false;
       
@@ -644,7 +651,7 @@ bool Statement::typeCheck(SymTable* table)
         }
       }
       
-      delete argsType;
+//       delete argsType;
       
       break;
     }
@@ -1157,7 +1164,7 @@ Name::Name(Node* name, Node* expression, int kind):Node("", "Name", kind)
 
 string Name::getFuncName()
 {
-  if(_kind == NAMEDOTID || _kind == NAMEID)
+  if(_kind == NAMEDOTID || _kind == NAMEID || _kind == NAMETHIS)
     return _value;
   return "";
 }
@@ -1168,7 +1175,27 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
   {  
     case NAMETHIS:
     {
-      return table->getClassType();
+      Type* ret = table->getClassType();
+      if(ret == 0)
+      {
+        cerr << "FATAL internal Error" << endl;
+        exit(1);
+      }
+      
+      if(mangledName == "")
+      {
+        return new Type(ret->getClassType(), ret->getClassType(), 0, "", true);
+      }
+      else
+      {
+        ret = table->lookup(mangledName);
+        if(ret == 0)
+        {
+          cerr << "Type Error: " << " No Matching Constructor Declaration" 
+          << " Line " << _lineNumber << endl;
+        }
+        return ret;
+      }
     }
     case NAMEID:
     {
@@ -1516,7 +1543,7 @@ Type* Expression::getTypeCheck(SymTable* table)
         }
       }
       
-      delete argsType;
+//       delete argsType;
       
       return funcType;
     }

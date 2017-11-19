@@ -20,11 +20,14 @@ class ClassA
   
   void method1()
   {
+    
+    
+//     this(5);//error no mlathcing constructure
 //     myint1 = null; //error type mismatch
 //     if(myint1 == null){}//error type mismatch
 //     if(myint1 + null){} //error type mismatch
 //     if(myClassA1 + null){} //error type does not evaluate to boolean
-    if((myClassA1 == null) && (myint1 == null)){}//error expressions not of same tyupe
+//     if((myClassA1 == null) && (myint1 == null)){}//error expressions not of same tyupe
 // //     myint1 = new int;//syntax error
 //     method1 = myint1; //error unrecognized identifier method1
 //     myint1 = method1; //error unrecognized identifier method1
@@ -45,6 +48,8 @@ class ClassA
 //     myint1 = new ClassNone(myint1);//error classnone dne
 //     myint1 = new ClassNone[][];//error classnone dne
 //     myint1 = new ClassNone[5][];//error classnone dne
+//     this.x = 0; //errror x not declared within ClassA
+
   }
   
   int method2(int x, ClassA y, ClassB c)

@@ -93,8 +93,6 @@ using namespace std;
 #define PARAMLDONE 12001
 #define PARAMLIST 12002
 
-// string nameMangle(string funcName, vector<string>* funcParamTypes);
-
 class Type
 {
 private:
@@ -128,6 +126,7 @@ public:
   bool classLookup(string identifier) const;
   int insert(string identifier, Type* type);
   string getValue(void) const;
+  SymTable* getParent();
   Type* getClassType() const;
   const SymTable* getRoot() const;
   SymTable* lookupChild(string className) const;
