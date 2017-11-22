@@ -13,7 +13,6 @@ using namespace std;
 #include<cstdlib>
 
 
-//TODO: set initial values
 //TODO: note i do  allow adding of null
 
 bool PDebug = false; //prints leaves on true
@@ -24,7 +23,7 @@ extern vector<Type*> extraTypes;
 
 Type numLiteralType("", "int", 0, "", false);
 Type nullType("", "null", 0, "", false);
-Type boolType("", "bool", 0, "", false);
+// Type boolType("", "bool", 0, "", false);
 
 string nameMangle(string funcName, vector<string>* funcParamTypes)
 {
@@ -52,7 +51,7 @@ string nameUnMangle(string mangledName)
 /******************************************************************************/
 
 Type::Type(string lval = "", string rval = "", vector<string>* parameters = 0, string classType = "", bool deleteME = false)
-:_lval(lval), _rval(rval), _parameters(parameters), _classType(classType)
+:_lval(lval), _rval(rval), _parameters(parameters), _classType(classType), _value("")
 {
   if (deleteME)
   {
@@ -72,11 +71,13 @@ string Type::getlval(void) const{return _lval; }
 
 string Type::getrval(void) const {return _rval;}
 
-vector<string>* Type::getParams(void) { return _parameters;}
+vector<string>* Type::getParams(void) const { return _parameters;}
 
 string Type::getClassType(void) const {return _classType; }
 
-void Type::print(ostream* out) 
+void Type::setInit(string val) { _value = val; }
+
+void Type::print(ostream* out) const
 { 
   if(_classType != "")
     *out << "Class Type";
@@ -136,7 +137,7 @@ Type* SymTable::lookup(string identifier) const
   else return it->second;
 }
 
-Type* SymTable::lookup(string className, string identifier)
+Type* SymTable::lookup(string className, string identifier, int linenum) const
 {
   //lookup the id in the class symtable of className
   
@@ -160,8 +161,8 @@ Type* SymTable::lookup(string className, string identifier)
   Type* idType = classTable->lookup(identifier);
   if(idType == 0)
   {
-    cerr << "Type Error: " << "Identfier \"" << identifier 
-    << "\" Not Declared within " << className   
+    cerr << "Type Error: " << "Identfier \"" << nameUnMangle(identifier) 
+    << "\" Not Declared within " << className << " Line " << linenum  
     << endl;
     return 0;
   }
@@ -219,7 +220,7 @@ int SymTable::insert(string identifier, Type* type)
 
 string SymTable::getValue(void) const {return _value;}
 
-SymTable* SymTable::getParent() { return _parent;}
+SymTable* SymTable::getParent() const { return _parent;}
 
 Type* SymTable::getClassType() const
 {
@@ -245,7 +246,7 @@ string SymTable::findFunc() const
   return _value;
 }
 
-void SymTable::print(ostream* out, int level)
+void SymTable::print(ostream* out, int level) const
 {
   
   for(auto it = _entries.begin(); it != _entries.end(); it++)
@@ -265,16 +266,8 @@ void SymTable::print(ostream* out, int level)
     if(it2 != _children.end())
     {
       it2->second->print(out, level + 1);
-//       delete it2->second;
-//       _children.erase(it2);
     }    
   }
-  //print the rest of the children of this scope
-  
-//   for(auto it2 = _children.begin(); it2!= _children.end(); it2++)
-//   {
-//     it2->second->print(out, level + 1);
-//   }
 }
 
 /******************************************************************************/
@@ -721,7 +714,14 @@ bool Statement::typeCheck(SymTable* table)
     {
       //empty param list function call
       //get type of function name from symbol table
-      string mangledFuncName = nameMangle(((Name*)_subNodes[0])->getFuncName(), 0);
+      string funcName = ((Name*)_subNodes[0])->getFuncName();
+      
+      if(funcName == "this")
+      {
+        funcName = _myTable->getClassType()->getClassType();
+      }
+      string mangledFuncName = nameMangle(funcName, 0);
+      
       Type* funcType = ((Name*)_subNodes[0])->getTypeCheck(_myTable, mangledFuncName);
       if(funcType == 0) return false;
       break;
@@ -1236,9 +1236,9 @@ Type* Name::getTypeCheck(SymTable* table, string mangledName = "")
         return 0;
       }
       if(mangledName == "") 
-        return table->lookup(nameType->getlval(), _value);
+        return table->lookup(nameType->getlval(), _value, _lineNumber);
       else
-        return table->lookup(nameType->getlval(), mangledName);
+        return table->lookup(nameType->getlval(), mangledName, _lineNumber);
     }
     case NAMEEXP:
     {
@@ -1422,7 +1422,6 @@ Type* Expression::getTypeCheck(SymTable* table)
       if(expType1->getrval() == "int")
       {
         //bool is always valid
-//         if(expType2->getrval() == "bool") return &numLiteralType; 
         if(expType2->getrval() != "int")
         {
           cerr << "Type Error: "  << "Expressions must be of the same type" 
@@ -1737,7 +1736,7 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       
       //get type of constructor from symbol table
       string mangledConsName = nameMangle(_value, argsType->getParams());
-      Type* consType = table->lookup(_value, mangledConsName);
+      Type* consType = table->lookup(_value, mangledConsName, _lineNumber);
       if(consType == 0) return 0;
       
       //compare function type with arguments passed
@@ -1865,9 +1864,9 @@ Type* NewExpression::getTypeCheck(SymTable* table)
       //type exists, default constructor always exists
       
       //get type of constructor from symbol table, no args
-      string mangledConsName = nameMangle(_value, 0);
-      Type* consType = table->lookup(_value, mangledConsName);
-      if(consType == 0) return 0;
+//       string mangledConsName = nameMangle(_value, 0);
+//       Type* consType = table->lookup(_value, mangledConsName, _lineNumber);
+//       if(consType == 0) return 0;
       
       return new Type("", _value);
     }
@@ -2373,6 +2372,8 @@ void VarDec::buildTable(SymTable* table)
   string type = ((TypeNode*)_subNodes[0])->getType();
   //create mytype
   Type* mytype = new Type(type, type);
+  if(type == "int") mytype->setInit("0");
+  else mytype->setInit("null");
   // add myself to symbol table
   ret = table->insert(_value, mytype);
   if(ret == -1) 

@@ -15,7 +15,8 @@ using namespace std;
 #ifndef NODE_H
 #define NODE_H
 
-/* These are all for finding out the kind of node. It helps with printing*/
+/* These are all for finding out the kind of node. It helps with printing*, 
+ * building the table and typechecking */
 #define PLAIN 1000
 #define EXPNUM 1001 /*Expression ->  */
 #define EXPNULL 1002 /*Expression ->  */
@@ -40,7 +41,7 @@ using namespace std;
 #define NEWEXPBRACK 3002 /* NewExpression -> */
 #define NEWEXPBRACKMULTI 3003 /* NewExpression -> */
 #define NEWEXPMULTI 3004 /* NewExpression -> */
-#define NEWEXPEMPTY 3005 /* NewExpression -> */
+#define NEWEXPEMPTY 3005 
 #define NEWEXPPAREN 3006
 
 #define STMNTNAMEEXP 4001
@@ -100,14 +101,20 @@ private:
   string _rval;
   vector<string>* _parameters;
   string _classType;
+  string _value;
 public:
   Type(string lval, string rval, vector<string>* parameters, string classType, bool deleteME);
   ~Type();
+  
+  /*Accessor Functions*/
   string getlval(void) const;
   string getrval(void) const;
-  vector<string>* getParams(void);
+  vector<string>* getParams(void) const;
   string getClassType(void) const;
-  void print(ostream* out);
+  void print(ostream* out) const;
+  
+  /*Modifier Functions*/
+  void setInit(string val);
 };
 
 class SymTable
@@ -119,19 +126,70 @@ private:
   unordered_map<string, SymTable*> _children;
 public:
   SymTable(SymTable* parent, string value);
+    /* parent is the parent of this symbol table,
+     * value is the name associated with this table.
+     */
   ~SymTable();
-  int addChild(SymTable*);
-  Type* lookup(string identifier) const;
-  Type* lookup(string className, string identifier);
-  bool classLookup(string identifier) const;
+  
+  /*Modifier Functions*/
+  int addChild(SymTable* child);
+  /* Insert child as a part of the children of this table. child should have a 
+   * value defined for it
+   * Return 0 for success, -1 for failure due to duplicate entry
+   */
   int insert(string identifier, Type* type);
+    /* Insert and entry into the entries for this symbol table, identifier is 
+     * the key. type is the Type
+     * Return 0 for success, -1 for failure due to duplicate entry
+     */
+  
+  /*Accessor Functions*/
+  Type* lookup(string identifier) const;
+    /* look in the current symbol table and all the way up the root for identifier 
+     * Return the Type of identfier, 0, if it DNE */
+  Type* lookup(string className, string identifier, int linenum) const;
+    /* Look in the symbol of className for the given identifier. linenum is for 
+     * better error reporting and optional. 
+     * Return the Type of identfier, 0 if it DNE*/
+  Type* getClassType(void) const;
+    /* Look up the symbol tables until you find the class that the calling 
+     * symbol table is a part of. 
+     * Return the Type of the class found, 0, if it DNE */
+  bool classLookup(string identifier) const;
+    /* Return true if the identifier is a class type in the symbol table tree,
+     * false otherwise*/
   string getValue(void) const;
-  SymTable* getParent();
-  Type* getClassType() const;
-  const SymTable* getRoot() const;
+    /* return the private variable _value, which is the identfier associated with 
+     * the symbol table, a random number for blocks.
+     * This introduces a problem, that I am aware of. 
+     * It is possible to get a name conflict if the same random number is chosen 
+     * twice. However, the probability is incredibly small. and rerunning the 
+     * program will "solve" that.
+     */
+  string findFunc(void) const;
+    /* Similar to classLookup. 
+     * look up the symbol tables until you find the function that the calling
+     * symbol table is a child of.
+     * Return the name of the function.
+     * Should never return an error value, because all Statements MUST be in a 
+     * function, syntactically
+     */
+  
+  SymTable* getParent(void) const;
+    /* Return the parent of this symbol Table. 
+     */
   SymTable* lookupChild(string className) const;
-  string findFunc() const;
-  void print(ostream* out, int level);
+    /* lookup up className in the current symbol table as a child
+     * return the pointer to that child, 0, if it DNE
+     */
+  const SymTable* getRoot(void) const;
+    /* look up the tree until you find the root.
+     * Return a pointer to the root tree.
+     */
+  
+  void print(ostream* out, int level) const;
+    /* Print the symbol table, all it's entries and all its children
+     */
 };
 
 class Node
