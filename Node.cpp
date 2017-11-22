@@ -1,9 +1,9 @@
 /*
  * Node.cpp
  * Author: Wyatt Emery
- * Date: NOV 3, 2017
+ * Date: NOV 2017
  *
- * COSC 4785, Homework3
+ * COSC 4785, Homework5
  *
  */
 
@@ -552,6 +552,7 @@ void Statement::buildTable(SymTable* table)
       exit(1);
       return;
     }
+    _myTable = myTable;
     _subNodes[childi]->buildTable(myTable);
   }
   else
@@ -1979,7 +1980,7 @@ void ConstructorDec::buildTable(SymTable* table)
   }
   
   //create mytype
-  Type* myType = new Type("", "", paramTypes);
+  Type* myType = new Type("", "void", paramTypes);
   ret = table->insert(nameMangle(_value, paramTypes), myType);
   if(ret == -1)
   {
@@ -2052,8 +2053,8 @@ bool ConstructorDec::typeCheck(SymTable* table)
       {
         if(!table->classLookup(type))
         {
-          cerr << "Type Error: Invalid Type " << type 
-          << " Line " << _lineNumber << endl;
+          cerr << "Type Error: Invalid Type \"" << type 
+          << "\" Line " << _lineNumber << endl;
           return false;
         }
       }
@@ -2399,8 +2400,8 @@ bool VarDec::typeCheck(SymTable* table)
   {
     if(!table->classLookup(type))
     {
-      cerr << "Type Error: Invalid Type " << type 
-      << " Line " << _lineNumber << endl;
+      cerr << "Type Error: Invalid Type \"" << type 
+      << "\" Line " << _lineNumber << endl;
       return false;
     }
   }

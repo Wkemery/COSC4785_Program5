@@ -1,9 +1,9 @@
 /*
  * Node.h
  * Author: Wyatt Emery
- * Date: NOV 3, 2017
+ * Date: NOV 2017
  *
- * COSC 4785, Homework3
+ * COSC 4785, Homework5
  *
  */
 
