@@ -13,7 +13,6 @@ using namespace std;
 #include<cstdlib>
 
 
-//TODO: note i do  allow adding of null
 
 bool PDebug = false; //prints leaves on true
 bool EasyReading = false; /* on true, adds extra new lines for easy reading of 

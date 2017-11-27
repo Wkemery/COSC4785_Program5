@@ -112,7 +112,7 @@ public:
    * Return a pointer to the root tree.
    */
   
-  void print(ostream* out, int level) const;
+  void print(ostream* out, int level);
   /* Print the symbol table, all it's entries and all its children
    */
 };

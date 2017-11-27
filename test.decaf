@@ -1,0 +1,174 @@
+
+
+// Typechecking test file
+// Iteratively more complex type checking tests
+
+
+// Type check variable declarations
+//----------------------------------------------------------
+
+//                      CORRECT
+// //==========================================================
+// 
+// class A
+// {
+//   int A;
+//   A id;
+//   void method(){}
+//   void method(int a, B b){}
+// }
+// class B
+// {
+//   A object_of_type_A;
+//   B(){}
+//   B(int a){}
+// }
+// 
+// class AA
+// {
+//   A[][][] id;
+//   B[] id2;
+// }
+// class D
+// {
+//   E id;
+// }
+// class E
+// {
+//   D id;
+// }
+// 
+// 
+// //                          INCORRECT
+// //==========================================================
+// class C
+// {
+//   Z id;
+// }
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+//                 TYPECHECK ASSIGNMENT OPERATIONS
+//============================================================
+class B
+{
+  int x;
+  D d;
+}
+class D
+{
+  C c;
+  int j;
+}
+class C
+{
+  int[] f;
+  int h;
+  int j;
+}
+
+//                             CORRECT
+//==============================================================
+class A
+{
+  int x;
+  int[] y;
+  D d;
+  C[] c;
+  
+  A(int g, B b, D d, D[] dd)
+  {
+     this.x = 90;
+     d.c.h = 90;
+     y[5] = 90;
+     x = g;
+     this.x = g;
+     this.d.c.h = g;
+     c[90].j = 90;
+     dd[45].c.h = 90;
+     this.x[45] = 0;
+     b.d.c.f[45] = 0;
+     d[45].c.f[45] = 0;
+  }
+}
+
+//                              INCORRECT
+//=================================================================
+class Wrong
+{
+  int[] x;
+  Wrong(int g, B b, D[] d)
+  {
+//     this.this = 0;
+    this[45] = 0;
+  }
+}*/
+
+
+
+
+
+//                 TYPECHECK EXPRESSIONS
+//============================================================
+
+class B
+{
+  int x;
+  int[] y;
+  C c;
+}
+
+class C
+{
+  A a;
+}
+
+//                             CORRECT
+//==============================================================
+
+class A
+{
+  int x;
+  B b;
+  int[] y;
+  A(int j, C c, B b1, B b2)
+  {
+    x = 5+5;
+    b = b1+b2;
+    b.x = 5 <= 7;
+    j = !x;
+    x = (6+7);
+    y = ((y+b1.y)*b2.y)/c.a.y;
+  }
+}
+
+//                              INCORRECT
+//=================================================================
+class Wrong
+{
+  int x;
+  B b;
+  int[] y;
+  Wrong(int j, C c, B b1, B b2)
+  {
+    x = 5+c;
+    b = b1+5;
+    b = 5 <= 7;
+    b = !x;
+  }
+}
+
+
+
+
+

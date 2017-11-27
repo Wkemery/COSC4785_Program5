@@ -205,7 +205,7 @@ string SymTable::findFunc() const
   return _value;
 }
 
-void SymTable::print(ostream* out, int level) const
+void SymTable::print(ostream* out, int level)
 {
   
   for(auto it = _entries.begin(); it != _entries.end(); it++)
@@ -225,6 +225,16 @@ void SymTable::print(ostream* out, int level) const
     if(it2 != _children.end())
     {
       it2->second->print(out, level + 1);
-    }    
+      delete it2->second;
+      _children.erase(it2);
+      
+    }
+    
+  }
+  
+  //print out remaining children, blocks
+  for(auto it =_children.begin(); it!= _children.end(); it++)
+  {
+    it->second->print(out, level + 1);
   }
 }
