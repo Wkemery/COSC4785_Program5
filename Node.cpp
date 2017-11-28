@@ -325,11 +325,13 @@ void Statement::buildTable(SymTable* table)
     
     SymTable* myTable = new SymTable(table, name);
     ret = table->addChild(myTable);
-    if(ret == -1)
+    while(ret == -1)
     {
-      cerr << "Fatal Internal Error!" << endl;
-      exit(1);
-      return;
+      delete myTable; myTable = 0;
+      randname = rand();
+      string name = to_string(randname);
+      SymTable* myTable = new SymTable(table, name);
+      ret = table->addChild(myTable);
     }
     _myTable = myTable;
     _subNodes[childi]->buildTable(myTable);
