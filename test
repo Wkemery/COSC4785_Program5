@@ -1,0 +1,18 @@
+class A{
+  int x; 
+  B y;
+A(){}
+  void meth()
+  {
+    A();
+
+  }
+}
+
+class B {
+  int a;
+  void meth()
+  {
+    
+  }
+}

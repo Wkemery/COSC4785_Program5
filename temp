@@ -10,7 +10,8 @@ class ClassB
 {
   int z;
   int[] iarr;
-  int mymethod(int x, ClassA y){}
+  int mymethod(int x, ClassA y){
+  }
 }
 
 class ClassC
@@ -25,6 +26,7 @@ class ClassC
     int[] myarray;
     ClassC myCobject;
     ClassA[][] objArray;
+    myClassA1.y[0]();
   }
   
   int method2(){}

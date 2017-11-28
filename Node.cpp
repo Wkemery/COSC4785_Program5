@@ -496,6 +496,11 @@ bool Statement::typeCheck(SymTable* table)
       //get type of function name from symbol table
       string funcName = ((Name*)_subNodes[0])->getFuncName();
       
+      if(funcName == "")
+      {
+        cerr << "Type Error: Invalid Function Call " 
+        << "Line " << _lineNumber << endl;
+      }
       if(funcName == "this")
       {
         funcName = _myTable->getClassType()->getClassType();

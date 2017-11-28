@@ -35,8 +35,10 @@ int main()
     
   for(unsigned int i = 0; i < forest.size(); i++)
   {
-    //do typecheck here. 
-    if(forest[i] != 0) forest[i]->typeCheck(symbolTable);
+    //do typecheck here.
+    bool ret;
+    if(forest[i] != 0) ret = forest[i]->typeCheck(symbolTable);
+    if(!ret) cerr << "error occured" << endl;
   }
   
   
